@@ -60,6 +60,7 @@ async function persistVault(next) {
       if (generation !== session || !state.key) throw new Error("La bóveda se bloqueó antes de guardar. Vuelve a abrirla.");
       store.commit(encrypted);
     });
+    if (generation !== session || !state.key) throw new Error("La bóveda se bloqueó durante el guardado. Vuelve a abrirla para comprobar los cambios.");
     state.vault = next;
   } finally { busy = false; }
 }
@@ -123,6 +124,7 @@ async function handleAuth(event) {
       state.salt = salt;
       state.vault = opened.vault;
     });
+    if (generation !== session || !state.key) return;
     elements.authForm.reset();
     unlockUi();
   } catch {
@@ -552,6 +554,7 @@ async function confirmImport(event) {
       if (session !== generation) throw new Error("Operación cancelada");
       store.commit(migrated);
     });
+    if (generation !== session) return;
     cacheProfile(localStorage, opened.vault.profile);
     lockVault("Copia verificada y restaurada. Abre tu bóveda.");
   } catch {

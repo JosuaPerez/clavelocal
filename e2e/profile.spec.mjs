@@ -62,3 +62,28 @@ test("bóveda antigua se personaliza después de autenticar sin perder entradas;
   await page.locator("#importForm button[type=submit]").click();
   await expect(page.locator("#authTitle")).toHaveText("Hola, Mi usuario");
 });
+test("un guardado que termina después de bloquear no repuebla la sesión ni el saludo oculto", async ({ page }) => {
+  await page.goto("/");
+  await page.locator("#authUsername").fill("Perfil inicial");
+  await page.locator("#masterPassword").fill(password);
+  await page.locator("#confirmPassword").fill(password);
+  await page.locator("#authSubmit").click();
+  await expect(page.locator("#vaultView")).toBeVisible();
+  await page.evaluate(() => {
+    const original = navigator.locks.request.bind(navigator.locks);
+    navigator.locks.request = async (...args) => {
+      const result = await original(...args);
+      await new Promise((resolve) => { window.finishProfileSave = resolve; });
+      return result;
+    };
+  });
+  await page.locator("#profileButton").click();
+  await page.locator("#profileUsername").fill("Perfil actualizado");
+  await page.locator("#saveProfile").click();
+  await page.waitForFunction(() => typeof window.finishProfileSave === "function");
+  await page.locator("#lockButton").evaluate((button) => button.click());
+  await page.evaluate(() => window.finishProfileSave());
+  await expect(page.locator("#profileError")).toContainText("se bloqueó");
+  await expect(page.locator("#vaultGreeting")).toHaveText("TU ESPACIO PRIVADO");
+  await expect(page.locator("#vaultView")).not.toBeVisible();
+});
