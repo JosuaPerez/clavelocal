@@ -25,3 +25,7 @@ Se intentará confirmar el reporte en un plazo de 7 días. La corrección y divu
 - importaciones manipuladas que provoquen ejecución o pérdida de datos.
 
 Nunca compartas una clave maestra ni una exportación con datos reales para demostrar un problema.
+
+## Controles de contribuciones
+
+Consulta [CONTRIBUTING.md](CONTRIBUTING.md) para el flujo de revisión y [el modelo de amenazas](docs/THREAT_MODEL.md) para los límites. Los cambios externos no se publican automáticamente: pasan por pruebas, análisis de código y revisión del responsable. Las alertas automáticas no sustituyen una auditoría independiente.

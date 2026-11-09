@@ -6,11 +6,15 @@ import { spawn } from "node:child_process";
 
 const root = fileURLToPath(new URL(".", import.meta.url));
 const port = Number(process.env.CLAVELOCAL_PORT || 4173);
-const types = { ".html": "text/html; charset=utf-8", ".css": "text/css; charset=utf-8", ".js": "text/javascript; charset=utf-8", ".json": "application/json; charset=utf-8" };
-const allowed = new Set(["/", "/index.html", "/styles.css", "/app.js"]);
+const types = { ".html": "text/html; charset=utf-8", ".css": "text/css; charset=utf-8", ".js": "text/javascript; charset=utf-8", ".mjs": "text/javascript; charset=utf-8", ".json": "application/json; charset=utf-8" };
+const allowed = new Set(["/", "/index.html", "/styles.css", "/app.js", "/vault.mjs"]);
 
 export const server = createServer(async (request, response) => {
-  const url = new URL(request.url ?? "/", `http://${request.headers.host ?? "127.0.0.1"}`);
+  if (!new Set([`127.0.0.1:${port}`, `localhost:${port}`]).has(request.headers.host) || !["GET", "HEAD"].includes(request.method)) {
+    response.writeHead(403).end("Acceso denegado");
+    return;
+  }
+  const url = new URL(request.url ?? "/", `http://127.0.0.1:${port}`);
   const pathname = url.pathname === "/" ? "/index.html" : url.pathname;
   response.setHeader("Content-Security-Policy", "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'");
   response.setHeader("X-Content-Type-Options", "nosniff");

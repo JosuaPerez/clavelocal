@@ -1,0 +1,22 @@
+import { test, expect } from "@playwright/test";
+test("demo pública aislada y enlaces de acceso", async ({ page }) => {
+  await page.goto("http://127.0.0.1:4174/");
+  await expect(page.getByRole("link", { name: "Descargar para Windows" })).toHaveAttribute("href", "https://github.com/JosuaPerez/clavelocal/releases/latest");
+  await page.getByRole("link", { name: "Probar demo" }).click();
+  await expect(page.locator("#authForm")).toBeHidden();
+  await expect(page.locator("#restoreButton")).toBeHidden();
+  await page.locator("#demoButton").click();
+  await expect(page.locator("#entryList")).toContainText("Correo de ejemplo");
+  await expect(page.locator("#newEntryButton")).toBeDisabled();
+  await expect(page.locator("#importButton")).toBeDisabled();
+  await page.getByRole("button", { name: "Editar", exact: true }).first().click();
+  await expect(page.locator("#entryPassword")).toBeDisabled();
+  await page.getByRole("button", { name: "Cancelar", exact: true }).click();
+  expect(await page.evaluate(() => localStorage.length)).toBe(0);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("http://127.0.0.1:4174/");
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await page.screenshot({ path: "work/landing-mobile.png", fullPage: true });
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.screenshot({ path: "work/landing-desktop.png", fullPage: true });
+});

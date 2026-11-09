@@ -1,0 +1,24 @@
+name: Experiencia de uso
+description: Cuéntanos cómo fue probar ClaveLocal, sin datos personales ni contraseñas.
+title: "[Feedback] "
+body:
+  - type: markdown
+    attributes:
+      value: "No adjuntes claves ni bóvedas reales. Para vulnerabilidades usa el reporte privado de seguridad."
+  - type: dropdown
+    id: experience
+    attributes:
+      label: ¿Qué probaste?
+      options: [Demo web, Aplicación Windows, Versión para desarrollo]
+    validations:
+      required: true
+  - type: textarea
+    id: task
+    attributes:
+      label: ¿Qué querías hacer y qué ocurrió?
+    validations:
+      required: true
+  - type: textarea
+    id: improvement
+    attributes:
+      label: ¿Qué te resultó difícil o mejorarías?

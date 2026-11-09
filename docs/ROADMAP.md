@@ -5,7 +5,8 @@ La hoja de ruta es orientativa. Las decisiones se debatirán públicamente media
 ## 0.2 — Confianza y recuperación
 
 - Pruebas automatizadas de cifrado, migraciones e importación dañada.
-- Frase de recuperación opcional y flujo seguro de cambio de clave maestra.
+- Demo accesible sin instalación y primer instalador experimental de Windows.
+- Importación verificada, copia anterior y migración del KDF.
 - Indicador de salud de la bóveda y copias de seguridad recordadas localmente.
 - Revisión externa del modelo de amenazas.
 
@@ -15,6 +16,7 @@ La hoja de ruta es orientativa. Las decisiones se debatirán públicamente media
 - Integración opcional con autenticación del sistema operativo.
 - Atajos de teclado y mejoras de accesibilidad WCAG.
 - Bloqueo al suspender o cerrar sesión en el equipo.
+- Flujo seguro de cambio de clave maestra y revisión del almacenamiento nativo.
 
 ## 0.4 — Interoperabilidad
 

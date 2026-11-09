@@ -8,7 +8,7 @@
     <meta name="theme-color" content="#080b12">
     <title>ClaveLocal — Bóveda de contraseñas</title>
     <link rel="stylesheet" href="./styles.css">
-    <script src="./app.js" defer></script>
+    <script src="./app.js" type="module"></script>
   </head>
   <body>
     <div class="ambient ambient-one"></div>
@@ -23,6 +23,7 @@
           <span><strong>Clave</strong>Local</span>
         </a>
         <div class="top-actions">
+          <a href="https://github.com/JosuaPerez/clavelocal/issues/new?template=feedback.yml" target="_blank" rel="noopener noreferrer">Enviar comentarios</a>
           <span class="privacy-pill"><i></i> Solo en este PC</span>
           <button class="icon-button hidden" id="lockButton" type="button" aria-label="Bloquear bóveda" title="Bloquear bóveda">
             <svg viewBox="0 0 24 24"><path d="M7 10V7a5 5 0 0 1 10 0v3m-11 0h12a2 2 0 0 1 2 2v8H4v-8a2 2 0 0 1 2-2Z"/></svg>
@@ -64,6 +65,10 @@
             <p id="authError" class="form-error" role="alert"></p>
             <button class="primary-button full" id="authSubmit" type="submit">Crear bóveda <span>→</span></button>
           </form>
+          <button class="secondary-button full" id="demoButton" type="button">Probar con datos ficticios</button>
+          <button class="secondary-button full" id="restoreButton" type="button">Restaurar copia cifrada</button>
+          <button class="secondary-button full" id="previousBackupButton" type="button">Descargar copia anterior</button>
+          <p class="microcopy">La bóveda se guarda en este navegador y perfil. Exporta una copia: borrar los datos del navegador también borra la bóveda.</p>
           <p class="microcopy"><svg viewBox="0 0 24 24"><path d="M7 10V7a5 5 0 0 1 10 0v3m-11 0h12v10H6V10Z"/></svg> No podemos recuperar tu clave maestra. Guárdala bien.</p>
         </div>
       </section>
@@ -115,6 +120,17 @@
         </div>
       </section>
     </main>
+
+    <dialog id="importDialog" class="app-dialog">
+      <form id="importForm">
+        <h2>Verificar copia antes de restaurar</h2>
+        <p>Introduce la clave maestra de la copia. Solo reemplazaremos la bóveda actual después de verificarla y confirmar contigo.</p>
+        <label for="importPassword">Clave maestra de la copia</label>
+        <input id="importPassword" type="password" autocomplete="off" required>
+        <p id="importError" class="form-error" role="alert"></p>
+        <div class="dialog-actions"><button id="cancelImport" class="secondary-button" type="button">Cancelar</button><button class="primary-button" type="submit">Verificar y restaurar</button></div>
+      </form>
+    </dialog>
 
     <dialog id="entryDialog" class="app-dialog">
       <form id="entryForm" method="dialog" novalidate>

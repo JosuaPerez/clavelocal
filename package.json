@@ -1,12 +1,16 @@
 {
   "name": "clavelocal",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "description": "Generador y bóveda de contraseñas local, privada y de código abierto.",
   "type": "module",
   "scripts": {
     "start": "node server.mjs",
-    "test": "node --test"
+    "test": "node --test test/*.test.mjs",
+    "test:e2e": "playwright test",
+    "build": "node scripts/build.mjs",
+    "desktop:build": "tauri build",
+    "desktop:dev": "tauri dev"
   },
   "engines": {
     "node": ">=20"
@@ -23,5 +27,9 @@
     "security",
     "web-crypto",
     "spanish"
-  ]
+  ],
+  "devDependencies": {
+    "@playwright/test": "1.65.0",
+    "@tauri-apps/cli": "2.12.4"
+  }
 }

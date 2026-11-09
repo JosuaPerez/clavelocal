@@ -1,10 +1,11 @@
 "use strict";
 
-const STORAGE_KEY = "clavelocal.vault.v1";
+import { STORAGE_KEY, MAX_FILE_BYTES, VaultStore, randomBytes, deriveKey, encryptVault, openVault, validateEnvelope } from "./vault.mjs";
 const INACTIVITY_MS = 5 * 60 * 1000;
-const PBKDF2_ITERATIONS = 310000;
-const encoder = new TextEncoder();
-const decoder = new TextDecoder();
+const store = new VaultStore(localStorage);
+let pendingImport = null;
+let busy = false;
+let session = 0;
 
 const state = {
   key: null,
@@ -12,6 +13,8 @@ const state = {
   filter: "all",
   inactivityTimer: null,
   clipboardTimer: null,
+  salt: null,
+  demo: false,
 };
 
 const $ = (selector) => document.querySelector(selector);
@@ -33,79 +36,38 @@ const elements = {
   generatorStrengthLabel: $("#generatorStrengthLabel"), toast: $("#toast"), importFile: $("#importFile"),
 };
 
-function bytesToBase64(bytes) {
-  let binary = "";
-  for (const byte of bytes) binary += String.fromCharCode(byte);
-  return btoa(binary);
-}
-
-function base64ToBytes(value) {
-  const binary = atob(value);
-  return Uint8Array.from(binary, (char) => char.charCodeAt(0));
-}
-
-function randomBytes(length) {
-  return crypto.getRandomValues(new Uint8Array(length));
-}
-
-async function deriveKey(password, salt) {
-  const material = await crypto.subtle.importKey("raw", encoder.encode(password), "PBKDF2", false, ["deriveKey"]);
-  return crypto.subtle.deriveKey(
-    { name: "PBKDF2", hash: "SHA-256", salt, iterations: PBKDF2_ITERATIONS },
-    material,
-    { name: "AES-GCM", length: 256 },
-    false,
-    ["encrypt", "decrypt"]
-  );
-}
-
-async function encryptVault(key, vault, salt) {
-  const iv = randomBytes(12);
-  const encrypted = await crypto.subtle.encrypt(
-    { name: "AES-GCM", iv, additionalData: encoder.encode("clavelocal:v1") },
-    key,
-    encoder.encode(JSON.stringify(vault))
-  );
-  return {
-    format: "clavelocal-v1",
-    kdf: { name: "PBKDF2-SHA256", iterations: PBKDF2_ITERATIONS, salt: bytesToBase64(salt) },
-    cipher: { name: "AES-256-GCM", iv: bytesToBase64(iv), data: bytesToBase64(new Uint8Array(encrypted)) },
-  };
-}
-
-async function decryptVault(key, stored) {
-  const decrypted = await crypto.subtle.decrypt(
-    { name: "AES-GCM", iv: base64ToBytes(stored.cipher.iv), additionalData: encoder.encode("clavelocal:v1") },
-    key,
-    base64ToBytes(stored.cipher.data)
-  );
-  const vault = JSON.parse(decoder.decode(decrypted));
-  if (!vault || vault.version !== 1 || !Array.isArray(vault.entries)) throw new Error("Formato de bóveda no válido");
-  return vault;
-}
-
 function getStoredVault() {
-  const raw = localStorage.getItem(STORAGE_KEY);
-  if (!raw) return null;
-  try {
-    const value = JSON.parse(raw);
-    if (value?.format !== "clavelocal-v1" || !value?.kdf?.salt || !value?.cipher?.data) return null;
-    return value;
-  } catch {
-    return null;
-  }
+  return store.read();
 }
 
-async function persistVault() {
-  if (!state.key) return;
-  const current = getStoredVault();
-  const salt = current ? base64ToBytes(current.kdf.salt) : randomBytes(16);
-  const encrypted = await encryptVault(state.key, state.vault, salt);
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(encrypted));
+async function withStorageLock(operation) {
+  if (!navigator.locks) throw new Error("Este navegador no permite guardar de forma segura. Utiliza una versión actual de Edge, Chrome o Firefox.");
+  return navigator.locks.request(STORAGE_KEY, operation);
+}
+
+async function persistVault(next) {
+  if (!state.key || busy) throw new Error("Hay otra operación en curso o la bóveda está bloqueada.");
+  busy = true;
+  const generation = session;
+  try {
+    const encrypted = await encryptVault(state.key, next, state.salt);
+    await withStorageLock(() => {
+      if (generation !== session || !state.key) throw new Error("La bóveda se bloqueó antes de guardar. Vuelve a abrirla.");
+      store.commit(encrypted);
+    });
+    state.vault = next;
+  } finally { busy = false; }
 }
 
 function configureAuth() {
-  const exists = Boolean(getStoredVault());
+  let exists;
+  try { exists = Boolean(getStoredVault()); }
+  catch {
+    elements.authError.textContent = "No se puede leer la bóveda. Conservamos los datos: restaura una copia válida o revisa el almacenamiento del navegador.";
+    elements.authSubmit.disabled = true;
+    return;
+  }
+  elements.authSubmit.disabled = false;
   elements.confirmGroup.classList.toggle("hidden", exists);
   elements.confirmPassword.required = !exists;
   elements.masterPassword.autocomplete = exists ? "current-password" : "new-password";
@@ -121,35 +83,37 @@ async function handleAuth(event) {
   event.preventDefault();
   elements.authError.textContent = "";
   const password = elements.masterPassword.value;
-  const stored = getStoredVault();
+  if (busy) return;
 
   if (password.length < 12) {
     elements.authError.textContent = "Usa al menos 12 caracteres para tu clave maestra.";
     return;
   }
-  if (!stored && password !== elements.confirmPassword.value) {
-    elements.authError.textContent = "Las claves no coinciden.";
-    return;
-  }
-
+  busy = true;
+  const generation = ++session;
   elements.authSubmit.disabled = true;
   try {
-    if (stored) {
-      const key = await deriveKey(password, base64ToBytes(stored.kdf.salt));
-      state.vault = await decryptVault(key, stored);
-      state.key = key;
-    } else {
+    await withStorageLock(async () => {
+      const stored = getStoredVault();
+      if (!stored && password !== elements.confirmPassword.value) throw new Error("Las claves no coinciden.");
+      const opened = stored ? await openVault(password, stored) : { vault: { version: 1, entries: [] } };
       const salt = randomBytes(16);
-      state.key = await deriveKey(password, salt);
-      state.vault = { version: 1, entries: [] };
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(await encryptVault(state.key, state.vault, salt)));
-    }
+      const key = await deriveKey(password, salt);
+      const encrypted = await encryptVault(key, opened.vault, salt);
+      if (generation !== session) throw new Error("Operación cancelada");
+      // Old KDF parameters are migrated only after successful authentication.
+      store.commit(encrypted);
+      state.key = key;
+      state.salt = salt;
+      state.vault = opened.vault;
+    });
     elements.authForm.reset();
     unlockUi();
   } catch {
     state.key = null;
-    elements.authError.textContent = "La clave maestra no es correcta o la bóveda está dañada.";
+    elements.authError.textContent = "No se pudo abrir o guardar la bóveda. Revisa la clave, la copia y el espacio disponible. Los datos anteriores se conservan.";
   } finally {
+    busy = false;
     elements.authSubmit.disabled = false;
   }
 }
@@ -165,14 +129,33 @@ function unlockUi() {
 }
 
 function lockVault(message = "Bóveda bloqueada") {
+  session += 1;
   state.key = null;
+  state.salt = null;
   state.vault = { version: 1, entries: [] };
   clearTimeout(state.inactivityTimer);
+  clearTimeout(state.clipboardTimer);
+  elements.entryForm.reset();
+  elements.authForm.reset();
+  $("#importForm").reset();
+  pendingImport = null;
+  $("#importDialog").close();
+  for (const id of ["masterPassword", "confirmPassword", "entryPassword"]) document.getElementById(id).type = "password";
+  elements.generatedPassword.textContent = "";
+  elements.entryList.replaceChildren();
+  elements.categoryNav.replaceChildren();
+  elements.searchInput.value = "";
+  elements.allCount.textContent = "0";
+  elements.favoriteCount.textContent = "0";
   elements.entryDialog.close();
   elements.generatorDialog.close();
   elements.vaultView.classList.add("hidden");
   elements.lockButton.classList.add("hidden");
   elements.welcomeView.classList.remove("hidden");
+  if (state.demo) {
+    state.demo = false;
+    $(".privacy-pill").textContent = "Solo en este PC";
+  }
   configureAuth();
   elements.masterPassword.focus();
   showToast(message);
@@ -290,6 +273,8 @@ function openEntryDialog(entry = null) {
 
 async function saveEntry(event) {
   event.preventDefault();
+  if (event.submitter?.value === "cancel") { elements.entryForm.reset(); elements.entryDialog.close(); return; }
+  if (state.demo) { showToast("La demo usa solo datos ficticios. Descarga la app para crear tu bóveda."); return; }
   elements.entryError.textContent = "";
   const site = elements.entrySite.value.trim();
   const password = elements.entryPassword.value;
@@ -309,26 +294,32 @@ async function saveEntry(event) {
     favorite: existing?.favorite || false,
     updatedAt: new Date().toISOString(),
   };
-  if (existing) Object.assign(existing, entry);
-  else state.vault.entries.push(entry);
-  await persistVault();
+  const next = structuredClone(state.vault);
+  if (existing) Object.assign(next.entries.find((item) => item.id === id), entry);
+  else next.entries.push(entry);
+  try { await persistVault(next); }
+  catch (error) { elements.entryError.textContent = error.message; return; }
   elements.entryDialog.close();
+  elements.entryForm.reset();
   renderEntries();
   showToast(existing ? "Contraseña actualizada" : "Contraseña guardada");
 }
 
 async function toggleFavorite(id) {
-  const entry = state.vault.entries.find((item) => item.id === id);
+  if (state.demo) { showToast("Demo: los cambios no se guardan."); return; }
+  const next = structuredClone(state.vault);
+  const entry = next.entries.find((item) => item.id === id);
   if (!entry) return;
   entry.favorite = !entry.favorite;
-  await persistVault();
+  try { await persistVault(next); } catch (error) { showToast(error.message); return; }
   renderEntries();
 }
 
 async function deleteEntry(entry) {
+  if (state.demo) return;
   if (!confirm(`¿Eliminar la contraseña de ${entry.site}? Esta acción no se puede deshacer.`)) return;
-  state.vault.entries = state.vault.entries.filter((item) => item.id !== entry.id);
-  await persistVault();
+  const next = { ...state.vault, entries: state.vault.entries.filter((item) => item.id !== entry.id) };
+  try { await persistVault(next); } catch (error) { showToast(error.message); return; }
   renderEntries();
   showToast("Contraseña eliminada");
 }
@@ -382,7 +373,7 @@ function updateStrength(password, fill, label) {
   const strength = strengthOf(password);
   fill.style.width = `${strength.width}%`;
   fill.style.background = strength.color;
-  label.textContent = `${strength.label} · ${password.length} caracteres`;
+  label.textContent = `Estimación por longitud y variedad · ${password.length} caracteres. No detecta frases predecibles.`;
 }
 
 function refreshGeneratedPassword() {
@@ -399,7 +390,7 @@ function openGenerator() {
 async function copySecret(value) {
   try {
     await navigator.clipboard.writeText(value);
-    showToast("Copiada. El portapapeles se limpiará en 30 segundos.");
+    showToast("Copiada. Intentaremos limpiarla en 30 segundos; el navegador puede impedirlo.");
     clearTimeout(state.clipboardTimer);
     state.clipboardTimer = setTimeout(async () => {
       try {
@@ -413,13 +404,20 @@ async function copySecret(value) {
 }
 
 function exportVault() {
-  const stored = getStoredVault();
+  if (state.demo) { showToast("La demo no contiene una bóveda para exportar."); return; }
+  let stored;
+  try { stored = validateEnvelope(JSON.parse(localStorage.getItem(STORAGE_KEY))); }
+  catch { showToast("No se pudo leer la copia cifrada."); return; }
   if (!stored) return;
+  downloadEnvelope(stored);
+}
+
+function downloadEnvelope(stored, suffix = "copia") {
   const blob = new Blob([JSON.stringify(stored, null, 2)], { type: "application/json" });
   const url = URL.createObjectURL(blob);
   const anchor = document.createElement("a");
   anchor.href = url;
-  anchor.download = `clavelocal-copia-${new Date().toISOString().slice(0, 10)}.json`;
+  anchor.download = `clavelocal-${suffix}-${new Date().toISOString().slice(0, 10)}.json`;
   anchor.click();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
   showToast("Copia cifrada exportada");
@@ -427,17 +425,55 @@ function exportVault() {
 
 async function importVault(file) {
   if (!file) return;
+  if (state.demo || busy) return;
   try {
-    const imported = JSON.parse(await file.text());
-    if (imported?.format !== "clavelocal-v1" || !imported?.kdf?.salt || !imported?.cipher?.iv || !imported?.cipher?.data) throw new Error();
-    if (!confirm("Importar reemplazará la bóveda actual. ¿Deseas continuar?")) return;
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(imported));
-    lockVault("Copia importada. Ábrela con su clave maestra.");
+    if (file.size > MAX_FILE_BYTES) throw new Error();
+    pendingImport = validateEnvelope(JSON.parse(await file.text()));
+    $("#importForm").reset();
+    $("#importError").textContent = "";
+    $("#importDialog").showModal();
+    $("#importPassword").focus();
   } catch {
     showToast("El archivo no es una copia válida de ClaveLocal");
   } finally {
     elements.importFile.value = "";
   }
+}
+
+async function confirmImport(event) {
+  event.preventDefault();
+  if (busy || !pendingImport) return;
+  busy = true;
+  const generation = session;
+  const imported = pendingImport;
+  try {
+    const password = $("#importPassword").value;
+    const opened = await openVault(password, imported);
+    const salt = randomBytes(16);
+    const key = await deriveKey(password, salt);
+    const migrated = await encryptVault(key, opened.vault, salt);
+    if (session !== generation || pendingImport !== imported) return;
+    if (!confirm(`Copia verificada: ${opened.vault.entries.length} entradas. ¿Reemplazar la bóveda? Conservaremos una copia cifrada anterior cuando exista.`)) return;
+    await withStorageLock(() => {
+      if (session !== generation) throw new Error("Operación cancelada");
+      store.commit(migrated);
+    });
+    lockVault("Copia verificada y restaurada. Abre tu bóveda.");
+  } catch {
+    $("#importError").textContent = "No se pudo verificar o guardar la copia. Revisa su clave y el espacio disponible. La bóveda actual no fue reemplazada.";
+  } finally { busy = false; $("#importPassword").value = ""; }
+}
+
+function startDemo() {
+  if (busy) return;
+  state.demo = true;
+  state.vault = { version: 1, entries: [
+    { id: "demo-1", site: "Correo de ejemplo", username: "ana@example.invalid", category: "Personal", password: "Ejemplo-No-Es-Un-Secreto-123!", notes: "Datos ficticios", favorite: true, updatedAt: new Date().toISOString() },
+    { id: "demo-2", site: "Trabajo de ejemplo", username: "demo@example.invalid", category: "Trabajo", password: "Solo-Para-Probar-456!", notes: "Datos ficticios", favorite: false, updatedAt: new Date().toISOString() },
+  ] };
+  $(".privacy-pill").textContent = "DEMO · Solo datos ficticios";
+  unlockUi();
+  showToast("Demo de lectura: no introduzcas contraseñas reales.");
 }
 
 let toastTimer;
@@ -449,6 +485,21 @@ function showToast(message) {
 }
 
 function bindEvents() {
+  $("#previousBackupButton").addEventListener("click", () => {
+    try {
+      const raw = localStorage.getItem(`${STORAGE_KEY}.previous`);
+      if (!raw) { showToast("Todavía no existe una copia anterior."); return; }
+      downloadEnvelope(validateEnvelope(JSON.parse(raw)), "anterior");
+    } catch { showToast("No se puede leer la copia anterior."); }
+  });
+  $("#demoButton").addEventListener("click", startDemo);
+  $("#restoreButton").addEventListener("click", () => elements.importFile.click());
+  $("#importForm").addEventListener("submit", confirmImport);
+  $("#cancelImport").addEventListener("click", () => { pendingImport = null; $("#importForm").reset(); $("#importDialog").close(); });
+  $("#importDialog").addEventListener("close", () => { pendingImport = null; $("#importForm").reset(); });
+  elements.entryDialog.addEventListener("close", () => elements.entryForm.reset());
+  elements.generatorDialog.addEventListener("close", () => { elements.generatedPassword.textContent = ""; });
+  window.addEventListener("storage", (event) => { if (event.key === STORAGE_KEY || event.key === null) lockVault("La bóveda cambió en otra ventana. Vuelve a abrirla."); });
   elements.authForm.addEventListener("submit", handleAuth);
   elements.lockButton.addEventListener("click", () => lockVault());
   $$("[data-reveal]").forEach((button) => button.addEventListener("click", () => {
@@ -478,8 +529,23 @@ function bindEvents() {
   $("#importButton").addEventListener("click", () => elements.importFile.click());
   elements.importFile.addEventListener("change", () => importVault(elements.importFile.files[0]));
   for (const name of ["pointerdown", "keydown"]) document.addEventListener(name, resetInactivityTimer, { passive: true });
-  document.addEventListener("visibilitychange", () => { if (document.hidden) resetInactivityTimer(); });
+  document.addEventListener("visibilitychange", () => { if (document.hidden && (state.key || state.demo)) lockVault("Bóveda bloqueada al salir de la ventana"); });
 }
 
 bindEvents();
 configureAuth();
+// The hosted demo is a separate build: no real vault entry or import is offered.
+if (document.documentElement.dataset.mode === "demo") {
+  elements.authForm.hidden = true;
+  $("#restoreButton").hidden = true;
+  $("#previousBackupButton").hidden = true;
+  $("#authDescription").textContent = "Explora ClaveLocal con datos ficticios. Para guardar contraseñas, descarga la aplicación de Windows.";
+  $("#authTitle").textContent = "Prueba ClaveLocal";
+  elements.entryForm.querySelectorAll("input, textarea, select").forEach((input) => { input.disabled = true; });
+  $("#newEntryButton").disabled = true;
+  $("#emptyNewButton").disabled = true;
+  $("#saveEntryButton").disabled = true;
+  $("#importButton").disabled = true;
+  $("#exportButton").disabled = true;
+  $("#useGeneratedButton").disabled = true;
+}

@@ -7,3 +7,9 @@ coverage/
 .vscode/
 outputs/
 work/
+dist/
+site/
+src-tauri/target/
+src-tauri/gen/
+playwright-report/
+test-results/
