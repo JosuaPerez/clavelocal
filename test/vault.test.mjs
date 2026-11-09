@@ -70,3 +70,14 @@ test("fallos de cuota no reemplazan el archivo existente", async () => {
   assert.throws(() => store.commit(envelope), /Quota/);
   assert.equal(memory.getItem(STORAGE_KEY), original);
 });
+test("restaurar una bóveda corrupta conserva la copia anterior válida", async () => {
+  const memory = storage();
+  const envelope = await encrypted();
+  const backup = JSON.stringify(envelope);
+  memory.setItem(`${STORAGE_KEY}.previous`, backup);
+  memory.setItem(STORAGE_KEY, "{dañado");
+  const store = new VaultStore(memory);
+  assert.throws(() => store.read());
+  store.commit(envelope);
+  assert.equal(memory.getItem(`${STORAGE_KEY}.previous`), backup);
+});

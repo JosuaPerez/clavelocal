@@ -64,7 +64,11 @@ export class VaultStore {
     if (this.expected === undefined || this.storage.getItem(STORAGE_KEY) !== this.expected) throw new Error("La bóveda cambió en otra ventana. Bloquea y vuelve a abrir antes de guardar.");
     const raw = JSON.stringify(envelope);
     // If backup or primary storage fails, callers keep the previous in-memory vault.
-    if (this.expected !== null) this.storage.setItem(`${STORAGE_KEY}.previous`, this.expected);
+    if (this.expected !== null) {
+      let validPrevious = false;
+      try { validateEnvelope(JSON.parse(this.expected)); validPrevious = true; } catch { /* Preserve an older valid backup when the primary file is malformed. */ }
+      if (validPrevious) this.storage.setItem(`${STORAGE_KEY}.previous`, this.expected);
+    }
     this.storage.setItem(STORAGE_KEY, raw);
     this.expected = raw;
   }

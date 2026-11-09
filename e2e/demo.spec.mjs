@@ -1,7 +1,7 @@
 import { test, expect } from "@playwright/test";
 test("demo pública aislada y enlaces de acceso", async ({ page }) => {
   await page.goto("http://127.0.0.1:4174/");
-  await expect(page.getByRole("link", { name: "Descargar para Windows" })).toHaveAttribute("href", "https://github.com/JosuaPerez/clavelocal/releases/latest");
+  await expect(page.getByRole("link", { name: "Descargar para Windows" })).toHaveAttribute("href", "https://github.com/JosuaPerez/clavelocal/releases");
   await page.getByRole("link", { name: "Probar demo" }).click();
   await expect(page.locator("#authForm")).toBeHidden();
   await expect(page.locator("#restoreButton")).toBeHidden();

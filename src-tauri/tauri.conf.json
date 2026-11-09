@@ -15,5 +15,5 @@
       "csp": "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'"
     }
   },
-  "bundle": { "active": true, "targets": ["nsis"], "icon": [], "windows": { "nsis": { "installMode": "currentUser", "languages": ["Spanish"] } } }
+  "bundle": { "active": true, "targets": ["nsis"], "icon": ["icons/32x32.png", "icons/128x128.png", "icons/128x128@2x.png", "icons/icon.ico"], "windows": { "nsis": { "installMode": "currentUser", "languages": ["Spanish"] } } }
 }
