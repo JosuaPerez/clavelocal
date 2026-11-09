@@ -24,6 +24,7 @@ jobs:
       - run: rustup default stable
       - run: npm run desktop:build
       - run: cargo test --release --locked --manifest-path src-tauri/Cargo.toml
+      - run: cargo build --release --locked --manifest-path src-tauri/Cargo.toml --bin verify-update
       - name: Hash del instalador
         shell: pwsh
         run: |
@@ -38,5 +39,6 @@ jobs:
             src-tauri/target/release/bundle/nsis/*.exe
             src-tauri/target/release/bundle/nsis/SHA256SUMS.txt
             src-tauri/Cargo.lock
+            src-tauri/target/release/verify-update.exe
           if-no-files-found: error
           retention-days: 14

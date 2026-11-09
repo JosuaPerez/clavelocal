@@ -5,6 +5,7 @@ description = "Bóveda local de contraseñas"
 edition = "2021"
 license = "MIT"
 rust-version = "1.90"
+default-run = "clavelocal"
 
 [build-dependencies]
 tauri-build = { version = "2", features = [] }
@@ -13,3 +14,6 @@ tauri-build = { version = "2", features = [] }
 tauri = { version = "2", features = [] }
 tauri-plugin-updater = "=2.14.1"
 serde = { version = "1", features = ["derive"] }
+base64 = "0.22"
+minisign-verify = "0.3"
+semver = "1"
