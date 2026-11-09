@@ -23,6 +23,7 @@
           <span><strong>Clave</strong>Local</span>
         </a>
         <div class="top-actions">
+          <button id="checkUpdatesButton" class="secondary-button" type="button" hidden>Buscar actualizaciones</button>
           <a href="https://github.com/JosuaPerez/clavelocal/issues/new?template=feedback.yml" target="_blank" rel="noopener noreferrer">Enviar comentarios</a>
           <span class="privacy-pill"><i></i> Solo en este PC</span>
           <button class="icon-button hidden" id="lockButton" type="button" aria-label="Bloquear bóveda" title="Bloquear bóveda">
@@ -85,9 +86,10 @@
             <nav id="categoryNav"></nav>
           </div>
           <div class="sidebar-footer">
+            <button id="csvImportButton" type="button">Importar contraseñas CSV</button>
             <button id="exportButton" type="button">Exportar copia cifrada</button>
-            <button id="importButton" type="button">Importar copia</button>
-            <input id="importFile" type="file" accept="application/json,.json" hidden>
+            <button id="importButton" type="button">Restaurar copia JSON</button>
+            <input id="importFile" type="file" accept="application/json,.json,text/csv,.csv" hidden>
             <p><i></i> Bóveda cifrada y local</p>
           </div>
         </aside>
@@ -120,6 +122,31 @@
         </div>
       </section>
     </main>
+
+    <dialog id="updateDialog" class="app-dialog">
+      <form method="dialog">
+        <h2>Actualizar ClaveLocal</h2>
+        <p id="updateStatus" role="status"></p>
+        <p id="updateNotes"></p>
+        <p>La comprobación consulta la versión pública en GitHub. No envía contraseñas ni el contenido de tu bóveda. Instalar cerrará la app; exporta primero una copia cifrada. La firma se verificará antes de ejecutar el instalador.</p>
+        <label><input id="updateBackupAck" type="checkbox"> Tengo una copia cifrada reciente de mi bóveda.</label>
+        <div class="dialog-actions"><button class="secondary-button" value="cancel">Cerrar</button><button id="installUpdateButton" class="primary-button" type="button" hidden>Actualizar y reiniciar</button></div>
+      </form>
+    </dialog>
+
+    <dialog id="csvDialog" class="app-dialog">
+      <form id="csvForm">
+        <h2>Importar desde Chrome o Brave</h2>
+        <p>Revisa las columnas. Añadiremos las entradas nuevas sin reemplazar las actuales. Las contraseñas se cifran en este equipo; no se envían a ningún servidor.</p>
+        <div id="csvMapping" class="form-grid"></div>
+        <p id="csvSummary" role="status"></p>
+        <ul id="csvIssues"></ul>
+        <p class="form-error" id="csvError" role="alert"></p>
+        <p class="microcopy">El CSV original contiene contraseñas sin cifrar. Después de verificar la importación, elimínalo tú de forma segura. ClaveLocal no modifica ese archivo.</p>
+        <label><input id="csvAcknowledge" type="checkbox" required> Revisé el resumen y acepto importar las entradas válidas.</label>
+        <div class="dialog-actions"><button type="button" id="cancelCsv" class="secondary-button">Cancelar</button><button type="submit" id="confirmCsv" class="primary-button">Importar entradas</button></div>
+      </form>
+    </dialog>
 
     <dialog id="importDialog" class="app-dialog">
       <form id="importForm">

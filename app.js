@@ -1,11 +1,15 @@
 "use strict";
 
 import { STORAGE_KEY, MAX_FILE_BYTES, VaultStore, randomBytes, deriveKey, encryptVault, openVault, validateEnvelope } from "./vault.mjs";
+import { parseCsv, planCsvImport } from "./csv.mjs";
 const INACTIVITY_MS = 5 * 60 * 1000;
 const store = new VaultStore(localStorage);
 let pendingImport = null;
 let busy = false;
 let session = 0;
+let pendingCsv = null;
+let csvPlan = null;
+let updateInProgress = false;
 
 const state = {
   key: null,
@@ -139,6 +143,8 @@ function lockVault(message = "Bóveda bloqueada") {
   elements.authForm.reset();
   $("#importForm").reset();
   pendingImport = null;
+  clearCsv();
+  $("#csvDialog").close();
   $("#importDialog").close();
   for (const id of ["masterPassword", "confirmPassword", "entryPassword"]) document.getElementById(id).type = "password";
   elements.generatedPassword.textContent = "";
@@ -427,17 +433,88 @@ async function importVault(file) {
   if (!file) return;
   if (state.demo || busy) return;
   try {
+    if (/\.csv$/i.test(file.name)) {
+      if (!state.key) throw new Error("Abre o crea tu bóveda antes de importar un CSV.");
+      const generation = session;
+      if (file.size > MAX_FILE_BYTES) throw new Error("El CSV supera 4 MiB.");
+      const text = new TextDecoder("utf-8", { fatal: true }).decode(await file.arrayBuffer());
+      if (generation !== session || !state.key) return;
+      pendingCsv = parseCsv(text);
+      renderCsvMapping();
+      $("#csvDialog").showModal();
+      return;
+    }
     if (file.size > MAX_FILE_BYTES) throw new Error();
     pendingImport = validateEnvelope(JSON.parse(await file.text()));
     $("#importForm").reset();
     $("#importError").textContent = "";
     $("#importDialog").showModal();
     $("#importPassword").focus();
-  } catch {
-    showToast("El archivo no es una copia válida de ClaveLocal");
+  } catch (error) {
+    showToast(/\.csv$/i.test(file.name) ? error.message : "El archivo no es una copia válida de ClaveLocal");
   } finally {
     elements.importFile.value = "";
   }
+}
+
+function clearCsv() {
+  pendingCsv = null; csvPlan = null;
+  $("#csvForm").reset();
+  $("#csvMapping").replaceChildren();
+  $("#csvIssues").replaceChildren();
+  $("#csvSummary").textContent = "";
+  $("#csvError").textContent = "";
+}
+
+function renderCsvMapping() {
+  $("#csvForm").reset();
+  $("#csvMapping").replaceChildren();
+  for (const [field, labelText] of Object.entries({ site: "Nombre o sitio", url: "URL", username: "Usuario", password: "Contraseña", notes: "Notas" })) {
+    const container = document.createElement("div");
+    const label = document.createElement("label");
+    label.htmlFor = `csv-${field}`; label.textContent = labelText;
+    const select = document.createElement("select");
+    select.id = `csv-${field}`; select.dataset.field = field;
+    select.add(new Option("No importar", "-1"));
+    pendingCsv.headers.forEach((header, index) => select.add(new Option(`${index + 1}: ${header.slice(0, 80)}`, String(index))));
+    select.value = String(pendingCsv.mapping[field]);
+    select.addEventListener("change", updateCsvPlan);
+    container.append(label, select); $("#csvMapping").append(container);
+  }
+  updateCsvPlan();
+}
+
+function updateCsvPlan() {
+  csvPlan = null;
+  $("#csvAcknowledge").checked = false;
+  $("#csvError").textContent = "";
+  $("#csvIssues").replaceChildren();
+  $("#confirmCsv").disabled = true;
+  try {
+    if (!pendingCsv || !state.key || state.demo) throw new Error("Abre una bóveda para importar.");
+    const mapping = Object.fromEntries($$("#csvMapping select").map((select) => [select.dataset.field, Number(select.value)]));
+    csvPlan = planCsvImport(pendingCsv, mapping, state.vault);
+    $("#csvSummary").textContent = `${csvPlan.total} registros: ${csvPlan.entries.length} nuevos, ${csvPlan.duplicates} duplicados exactos y ${csvPlan.issues.length} no válidos. Las entradas existentes se conservarán.`;
+    for (const issue of csvPlan.issues.slice(0, 20)) {
+      const item = document.createElement("li"); item.textContent = `Registro ${issue.row}: ${issue.reason}.`; $("#csvIssues").append(item);
+    }
+    $("#confirmCsv").disabled = csvPlan.entries.length === 0;
+  } catch (error) { $("#csvError").textContent = error.message; $("#csvSummary").textContent = "No se ha guardado ningún cambio."; }
+}
+
+async function confirmCsv(event) {
+  event.preventDefault();
+  if (!state.key || state.demo || busy || !csvPlan?.entries.length || !$("#csvAcknowledge").checked) return;
+  const count = csvPlan.entries.length;
+  const next = { version: 1, entries: [...state.vault.entries, ...csvPlan.entries] };
+  $("#confirmCsv").disabled = true;
+  try {
+    await persistVault(next);
+    $("#csvDialog").close();
+    clearCsv();
+    renderEntries();
+    showToast(`${count} contraseñas importadas y cifradas. Verifica tus entradas y exporta una copia cifrada.`);
+  } catch (error) { $("#csvError").textContent = error.message; $("#confirmCsv").disabled = false; }
 }
 
 async function confirmImport(event) {
@@ -485,6 +562,11 @@ function showToast(message) {
 }
 
 function bindEvents() {
+  setupUpdater();
+  $("#csvImportButton").addEventListener("click", () => { elements.importFile.accept = ".csv,text/csv"; elements.importFile.click(); });
+  $("#csvForm").addEventListener("submit", confirmCsv);
+  $("#csvDialog").addEventListener("close", clearCsv);
+  $("#cancelCsv").addEventListener("click", () => { $("#csvDialog").close(); clearCsv(); });
   $("#previousBackupButton").addEventListener("click", () => {
     try {
       const raw = localStorage.getItem(`${STORAGE_KEY}.previous`);
@@ -493,7 +575,7 @@ function bindEvents() {
     } catch { showToast("No se puede leer la copia anterior."); }
   });
   $("#demoButton").addEventListener("click", startDemo);
-  $("#restoreButton").addEventListener("click", () => elements.importFile.click());
+  $("#restoreButton").addEventListener("click", () => { elements.importFile.accept = ".json,application/json"; elements.importFile.click(); });
   $("#importForm").addEventListener("submit", confirmImport);
   $("#cancelImport").addEventListener("click", () => { pendingImport = null; $("#importForm").reset(); $("#importDialog").close(); });
   $("#importDialog").addEventListener("close", () => { pendingImport = null; $("#importForm").reset(); });
@@ -526,10 +608,44 @@ function bindEvents() {
   elements.passwordLength.addEventListener("input", () => { elements.lengthValue.textContent = elements.passwordLength.value; refreshGeneratedPassword(); });
   $$(".option-grid input").forEach((input) => input.addEventListener("change", refreshGeneratedPassword));
   $("#exportButton").addEventListener("click", exportVault);
-  $("#importButton").addEventListener("click", () => elements.importFile.click());
+  $("#importButton").addEventListener("click", () => { elements.importFile.accept = ".json,application/json"; elements.importFile.click(); });
   elements.importFile.addEventListener("change", () => importVault(elements.importFile.files[0]));
   for (const name of ["pointerdown", "keydown"]) document.addEventListener(name, resetInactivityTimer, { passive: true });
   document.addEventListener("visibilitychange", () => { if (document.hidden && (state.key || state.demo)) lockVault("Bóveda bloqueada al salir de la ventana"); });
+}
+
+function setupUpdater() {
+  const invoke = window.__TAURI__?.core?.invoke;
+  if (!invoke || document.documentElement.dataset.mode === "demo") return;
+  $("#checkUpdatesButton").hidden = false;
+  $("#checkUpdatesButton").addEventListener("click", async () => {
+    if (busy || updateInProgress) { showToast("Termina la operación actual antes de buscar actualizaciones."); return; }
+    updateInProgress = true;
+    $("#updateBackupAck").checked = false;
+    $("#installUpdateButton").hidden = true;
+    $("#updateNotes").textContent = "";
+    $("#updateStatus").textContent = "Buscando una versión publicada…";
+    $("#updateDialog").showModal();
+    try {
+      const update = await invoke("check_update");
+      $("#updateStatus").textContent = update ? `Nueva versión disponible: ${update.version}` : "Tienes la versión más reciente publicada en este canal.";
+      $("#updateNotes").textContent = update?.notes || "";
+      $("#installUpdateButton").hidden = !update;
+    } catch (error) { $("#updateStatus").textContent = String(error); }
+    finally { updateInProgress = false; }
+  });
+  $("#installUpdateButton").addEventListener("click", async () => {
+    if (busy || updateInProgress) return;
+    if (!$("#updateBackupAck").checked) { $("#updateStatus").textContent = "Exporta una copia cifrada y marca la confirmación antes de actualizar."; return; }
+    if (!confirm("¿Descargar la versión firmada, cerrar ClaveLocal e instalarla? La bóveda se conservará en este usuario de Windows.")) return;
+    updateInProgress = true;
+    lockVault("Bóveda bloqueada para actualizar");
+    $("#installUpdateButton").disabled = true;
+    $("#updateStatus").textContent = "Descargando y verificando la firma…";
+    try { await invoke("install_update"); }
+    catch (error) { $("#updateStatus").textContent = String(error); }
+    finally { updateInProgress = false; $("#installUpdateButton").disabled = false; }
+  });
 }
 
 bindEvents();
@@ -546,6 +662,7 @@ if (document.documentElement.dataset.mode === "demo") {
   $("#emptyNewButton").disabled = true;
   $("#saveEntryButton").disabled = true;
   $("#importButton").disabled = true;
+  $("#csvImportButton").disabled = true;
   $("#exportButton").disabled = true;
   $("#useGeneratedButton").disabled = true;
 }

@@ -28,6 +28,9 @@ button:disabled { opacity: .5; cursor: not-allowed; }
 .top-actions > a { color: var(--accent); font-size: .75rem; }
 .auth-card > .secondary-button { margin-top: 12px; }
 .strength-line { min-height: 42px; }
+#csvAcknowledge { width: auto; }
+#csvSummary { line-height: 1.6; color: var(--accent); }
+#csvIssues { color: var(--muted); font-size: .8rem; padding-left: 20px; }
 .ambient { position: fixed; width: 420px; height: 420px; border-radius: 50%; filter: blur(100px); opacity: .13; pointer-events: none; }
 .ambient-one { top: -180px; left: -80px; background: #46d79a; }
 .ambient-two { right: -200px; bottom: -140px; background: #4083bb; }
@@ -156,7 +159,9 @@ input[type="range"] { accent-color: var(--accent); padding: 0; background: trans
   .welcome-copy { max-width: 680px; }
   .auth-card { max-width: 560px; width: 100%; }
   .vault-view { grid-template-columns: 1fr; }
-  .sidebar { display: none; }
+  .sidebar { display: block; }
+  .sidebar > div:first-child { display: none; }
+  .sidebar-footer { display: flex; flex-wrap: wrap; gap: 12px; }
   .vault-content { border-left: 1px solid var(--line); border-radius: 16px; }
 }
 
