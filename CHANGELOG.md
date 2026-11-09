@@ -2,6 +2,15 @@
 
 Todos los cambios importantes se documentarán aquí siguiendo un esquema inspirado en Keep a Changelog.
 
+## [0.3.0] - 2026-11-09
+
+- Importación local de CSV de Chrome/Brave, con mapeo de columnas, resumen previo, detección de duplicados exactos y guardado cifrado sin reemplazar entradas.
+- Separación visible entre importar CSV y restaurar copias JSON; herramientas accesibles en ventanas estrechas.
+- Botón de actualización de escritorio con confirmación, firma del archivo vinculada a su versión y rechazo de versiones anteriores.
+- Clave privada de actualización fuera del repositorio y de los workflows de PR; preparación manual desde artefactos verificados de main.
+- Icono explícito del instalador e integración preparada para un certificado Authenticode válido, todavía no disponible.
+- Pruebas de CSV, interfaz del actualizador y verificación de firmas con casos negativos.
+
 ## [0.2.0] - 2026-11-09
 
 - Demo pública de lectura con datos ficticios y página de descarga.

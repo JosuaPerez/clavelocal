@@ -27,6 +27,8 @@ Los commits y los PR de GitHub no son actualizaciones instalables. Solo se anunc
 
 Las firmas se hacen localmente; no se ha guardado la clave privada en GitHub. Conservar una copia de recuperación de esa clave fuera del repositorio, en almacenamiento seguro. Perderla impide continuar el canal para las instalaciones existentes; exponerla permite falsificar actualizaciones. La copia local de trabajo no sustituye una custodia duradera del propietario.
 
+En este equipo se conserva en `.private/updater.key`, excluida de Git y con permisos NTFS limitados al usuario propietario y SYSTEM. No compartirla en chats, issues, PR ni capturas. Hacer una copia cifrada externa antes de borrar o mover el proyecto. La clave pública es la incluida en `src-tauri/tauri.conf.json`.
+
 ## Firma de Windows
 
 Sin certificado de editor no podemos eliminar el aviso de editor desconocido. Véase [WINDOWS_SIGNING.md](WINDOWS_SIGNING.md). Si se incorpora Authenticode, firmar primero el EXE con la identidad de Windows y después calcular los hashes y la firma de actualización.

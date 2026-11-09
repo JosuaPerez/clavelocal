@@ -1,4 +1,4 @@
-# Modelo de amenazas · 0.2
+# Modelo de amenazas · 0.3
 
 ## Qué protegemos
 
@@ -15,9 +15,13 @@ Entradas, notas y clave maestra frente a la lectura del archivo de bóveda cuand
 
 ## Aplicación y distribución
 
-El escritorio empaqueta recursos locales con Tauri sin plugins de shell, archivos, HTTP ni actualización. La bóveda usa almacenamiento cifrado del WebView del usuario. La CSP no autoriza scripts remotos ni conexiones de la app. La web pública es una demo separada, sin formularios habilitados para secretos reales; no distribuye la app real por HTTP.
+El escritorio empaqueta recursos locales con Tauri, sin APIs genéricas de shell, archivos ni HTTP expuestas al contenido web. La bóveda usa almacenamiento cifrado del WebView del usuario. La CSP no autoriza scripts remotos; en escritorio admite únicamente el IPC nativo requerido por dos comandos de actualización. La web pública es una demo separada, sin formularios habilitados para secretos reales; no distribuye la app real por HTTP.
 
-El instalador inicial no tiene firma de identidad de Windows. Los hashes de release detectan cambios respecto de esa publicación, pero no protegen frente al compromiso de la cuenta que publica. No existe actualizador automático. Incorporar Authenticode y, si llega un actualizador, verificación de su firma es trabajo pendiente.
+El instalador no tiene todavía firma de identidad de Windows. Los hashes de release detectan cambios respecto de esa publicación, pero no protegen frente al compromiso de la cuenta que publica. El actualizador de 0.3 usa el plugin oficial de Tauri para verificar firma y versión antes de ejecutar el instalador; se activa solo por una petición del usuario, con endpoint y clave pública fijos. La clave privada se custodia localmente, fuera de Git y de CI. Authenticode sigue pendiente: la firma del actualizador no sustituye la identidad del editor de Windows. Véase [UPDATES.md](UPDATES.md).
+
+## CSV
+
+Los CSV se procesan en memoria dentro del equipo. Se exige una bóveda abierta y se valida cada registro antes de cifrar el conjunto. Las filas se añaden; no sustituyen entradas existentes. La vista previa no muestra contraseñas. Se detectan duplicados exactos, se avisan las filas inválidas y el usuario confirma antes de persistir. Al cancelar o bloquear se eliminan referencias y controles de la importación. No se garantiza borrar físicamente la memoria del runtime; el archivo original sin cifrar permanece en su ubicación y debe gestionarlo el propietario. No se evalúan fórmulas ni HTML del CSV.
 
 ## Contribuciones
 

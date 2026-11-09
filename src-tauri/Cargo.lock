@@ -342,6 +342,7 @@ dependencies = [
  "minisign-verify",
  "semver",
  "serde",
+ "serde_json",
  "tauri",
  "tauri-build",
  "tauri-plugin-updater",

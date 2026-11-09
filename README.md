@@ -18,6 +18,8 @@ ClaveLocal nace de una idea sencilla: una herramienta de contraseñas debería s
 - Copia rápida y limpieza del portapapeles después de 30 segundos cuando el navegador lo permite.
 - Bloqueo automático tras 5 minutos sin actividad.
 - Exportación e importación de copias cifradas.
+- Importación CSV de Chrome y Brave con resumen y detección de duplicados exactos; añade entradas sin reemplazar la bóveda.
+- Búsqueda manual de actualizaciones firmadas desde el escritorio, con confirmación antes de instalar.
 - Sin telemetría, cuentas, anuncios ni conexiones de red de la bóveda. La versión de escritorio incorpora Tauri y WebView2.
 
 ## Inicio rápido en Windows
@@ -32,11 +34,23 @@ Abre [la demo pública](https://josuaperez.github.io/clavelocal/). Incluye datos
 2. Descarga el instalador `.exe` de Windows, instálalo para tu usuario y abre ClaveLocal. No necesitas Node.js ni Git.
 3. Crea una clave maestra larga y única y exporta tu copia cifrada.
 
-La versión 0.2 es experimental. El instalador inicial no tiene firma Authenticode: Windows puede mostrar una advertencia y una suma SHA-256 no sustituye una firma de identidad. No desactives las protecciones del sistema para instalarlo. Las actualizaciones son manuales.
+La versión 0.3 es experimental. Todavía no hay firma de editor Authenticode: Windows puede mostrar una advertencia. No desactives las protecciones del sistema para instalarlo. La firma de las actualizaciones se verifica dentro de la app, pero es distinta de la identidad de editor que comprueba Windows.
+
+Si tienes 0.2, exporta una copia cifrada, cierra ClaveLocal e instala 0.3 manualmente una vez, con el mismo usuario de Windows, sin borrar datos. Desde 0.3 aparece **Buscar actualizaciones**. Solo los releases publicados se ofrecen como actualizaciones; subir un commit no actualiza las instalaciones.
+
+## Importar desde Chrome o Brave
+
+1. Crea o abre tu bóveda y pulsa **Importar contraseñas CSV**.
+2. Selecciona el CSV exportado por el navegador. Se reconocen `name`, `url`, `username`, `password` y `note`/`notes`, y puedes ajustar el mapeo.
+3. Revisa el número de entradas nuevas, duplicados exactos y registros inválidos; confirma la importación. Verifica después tus entradas y exporta una copia cifrada.
+
+El archivo se procesa en este equipo, sin enviarlo a servidores. El CSV original sigue conteniendo contraseñas sin cifrar: elimínalo tú de forma segura cuando termines de comprobar la migración. La app no lo borra ni lo modifica. Se admiten CSV UTF-8 con comas, punto y coma o tabuladores; tamaño máximo 4 MiB y hasta 5.000 entradas totales. Los valores demasiado largos se señalan como inválidos, sin truncarlos. El botón **Restaurar copia JSON** es un flujo diferente que reemplaza la bóveda completa tras verificarla.
+
+Consulta [las actualizaciones](docs/UPDATES.md) y [la firma de Windows](docs/WINDOWS_SIGNING.md).
 
 La bóveda de escritorio se guarda cifrada en los datos de WebView2 de tu usuario. Es independiente de la del navegador: para migrar desde 0.1, exporta la copia desde el navegador y restáurala en la app. Conserva esa copia hasta verificar tus entradas.
 
-### Ejecutar desde el código fuente
+## Ejecutar desde el código fuente
 
 Requisitos: [Node.js](https://nodejs.org/) 20 o posterior.
 
