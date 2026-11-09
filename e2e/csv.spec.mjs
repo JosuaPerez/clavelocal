@@ -2,6 +2,7 @@ import { test, expect } from "@playwright/test";
 const password = "solo-pruebas-clave-ficticia-123!";
 async function create(page) {
   await page.goto("/");
+  await page.locator("#authUsername").fill("Perfil de prueba");
   await page.locator("#masterPassword").fill(password);
   await page.locator("#confirmPassword").fill(password);
   await page.locator("#authSubmit").click();
@@ -35,6 +36,7 @@ test("CSV solo local, vista previa sin contraseñas, cancelación, cifrado y dup
   await expect(page.locator("#csvMapping")).toBeEmpty();
   await page.locator("#masterPassword").fill(password);
   await page.locator("#authSubmit").click();
+  await expect(page.locator("#vaultGreeting")).toHaveText("Hola, Perfil de prueba");
   await page.getByRole("button", { name: "Editar", exact: true }).click();
   await expect(page.locator("#entryPassword")).toHaveValue('prueba,"123"');
 });

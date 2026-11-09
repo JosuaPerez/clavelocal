@@ -2,6 +2,7 @@
 
 import { STORAGE_KEY, MAX_FILE_BYTES, VaultStore, randomBytes, deriveKey, encryptVault, openVault, validateEnvelope } from "./vault.mjs";
 import { parseCsv, planCsvImport } from "./csv.mjs";
+import { PROFILE_KEY, normalizeUsername, readCachedProfile, cacheProfile } from "./profile.mjs";
 const INACTIVITY_MS = 5 * 60 * 1000;
 const store = new VaultStore(localStorage);
 let pendingImport = null;
@@ -72,15 +73,21 @@ function configureAuth() {
     return;
   }
   elements.authSubmit.disabled = false;
+  const profile = exists ? readCachedProfile(localStorage) : null;
+  $("#authUsernameGroup").hidden = exists;
+  $("#authUsername").required = !exists;
+  $("#profileAvatar").hidden = !profile;
+  $("#profileAvatar").textContent = profile ? Array.from(profile.username).slice(0, 2).join("").toLocaleUpperCase("es") : "";
+  $("#authLockIcon").hidden = Boolean(profile);
   elements.confirmGroup.classList.toggle("hidden", exists);
   elements.confirmPassword.required = !exists;
   elements.masterPassword.autocomplete = exists ? "current-password" : "new-password";
   elements.authKicker.textContent = exists ? "BIENVENIDO DE NUEVO" : "PRIMER ACCESO";
-  elements.authTitle.textContent = exists ? "Abre tu bóveda" : "Crea tu bóveda";
+  elements.authTitle.textContent = exists ? (profile ? `Hola, ${profile.username}` : "Abre tu bóveda") : "Crea tu perfil";
   elements.authDescription.textContent = exists
     ? "Introduce tu clave maestra para descifrar tus contraseñas."
-    : "Elige una clave maestra. Será la única forma de abrir tus contraseñas.";
-  elements.authSubmit.firstChild.textContent = exists ? "Abrir bóveda " : "Crear bóveda ";
+    : "Elige tu usuario y una clave maestra para crear tu bóveda local.";
+  elements.authSubmit.firstChild.textContent = exists ? "Entrar a mi bóveda " : "Crear perfil y bóveda ";
 }
 
 async function handleAuth(event) {
@@ -93,6 +100,11 @@ async function handleAuth(event) {
     elements.authError.textContent = "Usa al menos 12 caracteres para tu clave maestra.";
     return;
   }
+  if (!$("#authUsernameGroup").hidden) {
+    try { normalizeUsername($("#authUsername").value); }
+    catch (error) { elements.authError.textContent = error.message; return; }
+    if (password !== elements.confirmPassword.value) { elements.authError.textContent = "Las claves no coinciden."; return; }
+  }
   busy = true;
   const generation = ++session;
   elements.authSubmit.disabled = true;
@@ -100,7 +112,7 @@ async function handleAuth(event) {
     await withStorageLock(async () => {
       const stored = getStoredVault();
       if (!stored && password !== elements.confirmPassword.value) throw new Error("Las claves no coinciden.");
-      const opened = stored ? await openVault(password, stored) : { vault: { version: 1, entries: [] } };
+      const opened = stored ? await openVault(password, stored) : { vault: { version: 1, entries: [], profile: { version: 1, username: normalizeUsername($("#authUsername").value) } } };
       const salt = randomBytes(16);
       const key = await deriveKey(password, salt);
       const encrypted = await encryptVault(key, opened.vault, salt);
@@ -120,6 +132,7 @@ async function handleAuth(event) {
     busy = false;
     elements.authSubmit.disabled = false;
   }
+  if (state.key && !state.vault.profile) showProfileDialog();
 }
 
 function unlockUi() {
@@ -128,6 +141,7 @@ function unlockUi() {
   elements.lockButton.classList.remove("hidden");
   state.filter = "all";
   elements.searchInput.value = "";
+  renderProfile();
   renderEntries();
   resetInactivityTimer();
 }
@@ -141,6 +155,9 @@ function lockVault(message = "Bóveda bloqueada") {
   clearTimeout(state.clipboardTimer);
   elements.entryForm.reset();
   elements.authForm.reset();
+  $("#profileForm").reset();
+  $("#profileDialog").close();
+  $("#vaultGreeting").textContent = "TU ESPACIO PRIVADO";
   $("#importForm").reset();
   pendingImport = null;
   clearCsv();
@@ -506,7 +523,7 @@ async function confirmCsv(event) {
   event.preventDefault();
   if (!state.key || state.demo || busy || !csvPlan?.entries.length || !$("#csvAcknowledge").checked) return;
   const count = csvPlan.entries.length;
-  const next = { version: 1, entries: [...state.vault.entries, ...csvPlan.entries] };
+  const next = { ...state.vault, entries: [...state.vault.entries, ...csvPlan.entries] };
   $("#confirmCsv").disabled = true;
   try {
     await persistVault(next);
@@ -535,10 +552,41 @@ async function confirmImport(event) {
       if (session !== generation) throw new Error("Operación cancelada");
       store.commit(migrated);
     });
+    cacheProfile(localStorage, opened.vault.profile);
     lockVault("Copia verificada y restaurada. Abre tu bóveda.");
   } catch {
     $("#importError").textContent = "No se pudo verificar o guardar la copia. Revisa su clave y el espacio disponible. La bóveda actual no fue reemplazada.";
   } finally { busy = false; $("#importPassword").value = ""; }
+}
+
+function renderProfile() {
+  const profile = state.vault.profile;
+  $("#vaultGreeting").textContent = state.demo ? "DEMO · DATOS FICTICIOS" : profile ? `Hola, ${profile.username}` : "TU ESPACIO PRIVADO";
+  $("#profileButton").disabled = state.demo;
+  if (!state.demo && !cacheProfile(localStorage, profile)) showToast("La bóveda está abierta, pero no pudimos recordar tu nombre en este equipo.");
+}
+
+function showProfileDialog() {
+  if (!state.key || state.demo || busy) return;
+  $("#profileForm").reset();
+  $("#profileUsername").value = state.vault.profile?.username || "";
+  $("#profileError").textContent = "";
+  $("#profileDescription").textContent = state.vault.profile ? "Puedes cambiar el nombre de tu perfil local. Tu clave maestra y tus contraseñas se conservan." : "Tu bóveda ya está abierta. Elige cómo quieres que te saludemos; tus contraseñas actuales se conservan.";
+  $("#profileDialog").showModal();
+  $("#profileUsername").focus();
+}
+
+async function saveProfile(event) {
+  event.preventDefault();
+  if (!state.key || state.demo || busy) return;
+  try {
+    const profile = { version: 1, username: normalizeUsername($("#profileUsername").value) };
+    await persistVault({ ...state.vault, profile });
+    renderProfile();
+    $("#profileDialog").close();
+    $("#profileForm").reset();
+    showToast("Perfil guardado. La próxima vez solo necesitarás tu clave maestra.");
+  } catch (error) { $("#profileError").textContent = error.message; }
 }
 
 function startDemo() {
@@ -562,6 +610,10 @@ function showToast(message) {
 }
 
 function bindEvents() {
+  $("#profileButton").addEventListener("click", showProfileDialog);
+  $("#profileForm").addEventListener("submit", saveProfile);
+  $("#cancelProfile").addEventListener("click", () => $("#profileDialog").close());
+  $("#profileDialog").addEventListener("close", () => $("#profileForm").reset());
   setupUpdater();
   $("#csvImportButton").addEventListener("click", () => { elements.importFile.accept = ".csv,text/csv"; elements.importFile.click(); });
   $("#csvForm").addEventListener("submit", confirmCsv);
@@ -581,7 +633,10 @@ function bindEvents() {
   $("#importDialog").addEventListener("close", () => { pendingImport = null; $("#importForm").reset(); });
   elements.entryDialog.addEventListener("close", () => elements.entryForm.reset());
   elements.generatorDialog.addEventListener("close", () => { elements.generatedPassword.textContent = ""; });
-  window.addEventListener("storage", (event) => { if (event.key === STORAGE_KEY || event.key === null) lockVault("La bóveda cambió en otra ventana. Vuelve a abrirla."); });
+  window.addEventListener("storage", (event) => {
+    if (event.key === STORAGE_KEY || event.key === null) lockVault("La bóveda cambió en otra ventana. Vuelve a abrirla.");
+    else if (event.key === PROFILE_KEY && !state.key && !state.demo) configureAuth();
+  });
   elements.authForm.addEventListener("submit", handleAuth);
   elements.lockButton.addEventListener("click", () => lockVault());
   $$("[data-reveal]").forEach((button) => button.addEventListener("click", () => {

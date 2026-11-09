@@ -19,6 +19,10 @@ El escritorio empaqueta recursos locales con Tauri, sin APIs genéricas de shell
 
 El instalador no tiene todavía firma de identidad de Windows. Los hashes de release detectan cambios respecto de esa publicación, pero no protegen frente al compromiso de la cuenta que publica. El actualizador de 0.3 usa el plugin oficial de Tauri para verificar firma y versión antes de ejecutar el instalador; se activa solo por una petición del usuario, con endpoint y clave pública fijos. La clave privada se custodia localmente, fuera de Git y de CI. Authenticode sigue pendiente: la firma del actualizador no sustituye la identidad del editor de Windows. Véase [UPDATES.md](UPDATES.md).
 
+## Perfil local
+
+Desde 0.3.1 el perfil canónico está dentro del cifrado. El nombre se replica en un cache visible solo para el saludo previo al desbloqueo, con información explícita al usuario. Ese dato puede ser leído o alterado por quien tenga acceso al almacenamiento local; no autentica, no cambia la derivación de clave y se corrige desde la bóveda después de un desbloqueo válido. Windows Hello y passkeys no están activos. Detalles en [LOCAL_PROFILE.md](LOCAL_PROFILE.md).
+
 ## CSV
 
 Los CSV se procesan en memoria dentro del equipo. Se exige una bóveda abierta y se valida cada registro antes de cifrar el conjunto. Las filas se añaden; no sustituyen entradas existentes. La vista previa no muestra contraseñas. Se detectan duplicados exactos, se avisan las filas inválidas y el usuario confirma antes de persistir. Al cancelar o bloquear se eliminan referencias y controles de la importación. No se garantiza borrar físicamente la memoria del runtime; el archivo original sin cifrar permanece en su ubicación y debe gestionarlo el propietario. No se evalúan fórmulas ni HTML del CSV.

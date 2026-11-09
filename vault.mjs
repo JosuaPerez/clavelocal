@@ -1,4 +1,5 @@
 // Vault format v1 remains readable; new vaults use a stronger work factor.
+import { validateProfile } from "./profile.mjs";
 export const ITERATIONS = 600000;
 export const MAX_FILE_BYTES = 4 * 1024 * 1024;
 export const STORAGE_KEY = "clavelocal.vault.v1";
@@ -19,6 +20,7 @@ export function validateEnvelope(value) {
 
 export function validateVault(value) {
   if (value?.version !== 1 || !Array.isArray(value.entries) || value.entries.length > 5000) throw new Error("Bóveda no válida");
+  if (value.profile !== undefined) validateProfile(value.profile);
   const ids = new Set();
   for (const entry of value.entries) {
     if (!entry || typeof entry.id !== "string" || !entry.id || ids.has(entry.id) || typeof entry.favorite !== "boolean") throw new Error("Entrada no válida");

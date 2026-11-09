@@ -11,6 +11,7 @@ ClaveLocal nace de una idea sencilla: una herramienta de contraseñas debería s
 
 ## Funciones actuales
 
+- Perfil local: usuario y clave maestra al crear; bienvenida personalizada y solo clave al volver. Edición desde **Mi perfil**.
 - Generador de contraseñas basado en `crypto.getRandomValues`.
 - Bóveda cifrada con AES-256-GCM.
 - Derivación de clave con PBKDF2-SHA-256 y 600.000 iteraciones; migración de bóvedas antiguas después de autenticarlas.
@@ -77,7 +78,8 @@ Clave maestra
     └─ AES-256-GCM + IV aleatorio ───────► bóveda cifrada en el navegador
 ```
 
-La clave maestra no se guarda. Las entradas solo están descifradas en memoria mientras la bóveda permanece abierta. El almacenamiento persistente contiene únicamente el salt, los parámetros criptográficos y el texto cifrado autenticado.
+La clave maestra no se guarda. Las entradas solo están descifradas en memoria mientras la bóveda permanece abierta. El archivo de bóveda contiene el salt, los parámetros criptográficos y el texto cifrado autenticado.
+El nombre de usuario se recuerda también como dato visible para mostrar la bienvenida antes de abrir la bóveda; nunca sirve para descifrarla. Consulta [el perfil local](docs/LOCAL_PROFILE.md). Windows Hello y passkeys son trabajo futuro, todavía no disponible.
 
 ## Desarrollo
 

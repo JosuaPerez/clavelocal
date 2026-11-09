@@ -45,12 +45,18 @@
         </div>
 
         <div class="auth-card glass-panel">
-          <div class="auth-icon"><svg viewBox="0 0 24 24"><path d="M12 3 4.5 6v5.4c0 4.7 3.2 8.2 7.5 9.6 4.3-1.4 7.5-4.9 7.5-9.6V6L12 3Zm0 5v8m-3-4h6"/></svg></div>
+          <div class="profile-avatar" id="profileAvatar" aria-hidden="true" hidden></div>
+          <div class="auth-icon" id="authLockIcon"><svg viewBox="0 0 24 24"><path d="M12 3 4.5 6v5.4c0 4.7 3.2 8.2 7.5 9.6 4.3-1.4 7.5-4.9 7.5-9.6V6L12 3Zm0 5v8m-3-4h6"/></svg></div>
           <p class="card-kicker" id="authKicker">PRIMER ACCESO</p>
           <h2 id="authTitle">Crea tu bóveda</h2>
           <p class="muted" id="authDescription">Elige una clave maestra. Será la única forma de abrir tus contraseñas.</p>
 
           <form id="authForm" novalidate>
+            <div id="authUsernameGroup">
+              <label for="authUsername">Nombre de usuario</label>
+              <input id="authUsername" type="text" autocomplete="username" minlength="2" maxlength="40" placeholder="Ej. Josua" required>
+              <p class="microcopy">Recordaremos tu nombre para saludarte en este equipo. Será visible antes de desbloquear; tu clave maestra nunca se guarda.</p>
+            </div>
             <label for="masterPassword">Clave maestra</label>
             <div class="input-wrap">
               <input id="masterPassword" type="password" autocomplete="new-password" minlength="12" placeholder="Mínimo 12 caracteres" required>
@@ -86,6 +92,7 @@
             <nav id="categoryNav"></nav>
           </div>
           <div class="sidebar-footer">
+            <button id="profileButton" type="button">Mi perfil</button>
             <button id="csvImportButton" type="button">Importar contraseñas CSV</button>
             <button id="exportButton" type="button">Exportar copia cifrada</button>
             <button id="importButton" type="button">Restaurar copia JSON</button>
@@ -97,7 +104,7 @@
         <div class="vault-content">
           <div class="vault-header">
             <div>
-              <p class="eyebrow"><span></span> TU ESPACIO PRIVADO</p>
+              <p class="eyebrow" id="vaultGreeting">TU ESPACIO PRIVADO</p>
               <h2>Mis contraseñas</h2>
               <p class="muted">Todo organizado, todo bajo llave.</p>
             </div>
@@ -122,6 +129,20 @@
         </div>
       </section>
     </main>
+
+    <dialog id="profileDialog" class="app-dialog">
+      <form id="profileForm" novalidate>
+        <p class="card-kicker">TU PERFIL LOCAL</p>
+        <h2>Un espacio a tu nombre</h2>
+        <p id="profileDescription"></p>
+        <label for="profileUsername">Nombre de usuario</label>
+        <input id="profileUsername" type="text" autocomplete="username" minlength="2" maxlength="40" required>
+        <p class="microcopy">Este nombre aparecerá en la bienvenida, incluso con la bóveda bloqueada. No es una cuenta en servidores ni una segunda contraseña.</p>
+        <p class="form-error" id="profileError" role="alert"></p>
+        <div class="future-access"><strong>Windows Hello / passkeys</strong><span>Próximamente</span><p>Por ahora, el desbloqueo siempre requiere tu clave maestra.</p></div>
+        <div class="dialog-actions"><button id="cancelProfile" class="secondary-button" type="button">Ahora no</button><button id="saveProfile" class="primary-button" type="submit">Guardar perfil</button></div>
+      </form>
+    </dialog>
 
     <dialog id="updateDialog" class="app-dialog">
       <form method="dialog">

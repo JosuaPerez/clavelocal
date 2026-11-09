@@ -2,6 +2,14 @@
 
 Todos los cambios importantes se documentarán aquí siguiendo un esquema inspirado en Keep a Changelog.
 
+## [0.3.1] - 2026-11-09
+
+- Creación de perfil local con usuario y clave maestra; bienvenida personalizada al volver a abrir la app.
+- Edición del nombre desde Mi perfil y migración de bóvedas antiguas después de autenticarlas.
+- Perfil canónico cifrado, cache visible limitado al nombre y conservación del perfil al importar CSV o restaurar copias.
+- Pruebas de reapertura, cache alterado, contraseña incorrecta, renombrado y restauración del perfil.
+- Diseño documentado para Windows Hello/passkeys como funcionalidad futura, sin habilitarla ni guardar la clave maestra.
+
 ## [0.3.0] - 2026-11-09
 
 - Importación local de CSV de Chrome/Brave, con mapeo de columnas, resumen previo, detección de duplicados exactos y guardado cifrado sin reemplazar entradas.

@@ -5,7 +5,7 @@ import { resolve } from "node:path";
 import { createHash } from "node:crypto";
 
 const args = process.argv.slice(2);
-const option = (name) => args[args.indexOf(name) + 1];
+const option = (name) => { const index = args.indexOf(name); return index === -1 ? undefined : args[index + 1]; };
 const version = option("--version"), runId = option("--run"), signingKey = option("--signing-key");
 if (process.platform !== "win32" || !/^\d+\.\d+\.\d+$/.test(version ?? "") || !/^\d+$/.test(runId ?? "") || !args.includes("--signing-key")) throw new Error("Uso en Windows: node scripts/prepare-update.mjs --version X.Y.Z --run ID --signing-key RUTA_PRIVADA");
 const repository = "JosuaPerez/clavelocal";
@@ -43,7 +43,7 @@ for (const parameters of [[tampered, signatureFile, pubkey, version], [installer
 const signature = (await readFile(signatureFile, "utf8")).trim();
 const manifest = {
   version,
-  notes: "Importación CSV de Chrome/Brave con vista previa, actualizaciones verificadas e iconos de escritorio. Exporta una copia cifrada antes de instalar. Versión experimental sin firma de editor de Windows.",
+  notes: option("--notes-file") ? (await readFile(resolve(option("--notes-file")), "utf8")).trim() : `ClaveLocal ${version}. Revisa las notas del release y exporta una copia cifrada antes de instalar.`,
   pub_date: new Date().toISOString(),
   platforms: { "windows-x86_64": { signature, url: `https://github.com/${repository}/releases/download/v${version}/${filename}` } },
 };
