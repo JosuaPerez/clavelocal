@@ -28,3 +28,9 @@ Dependabot, CodeQL, revisión de dependencias, fijación de acciones y protecci�
 ## Verificación pendiente
 
 Auditoría independiente, revisión específica de APIs nativas, firma de distribución, pruebas con usuarios en Windows y bloqueo integrado con eventos del sistema. No presentar 0.2 como producto auditado ni como único almacén de secretos críticos.
+
+## Alertas conocidas al publicar 0.2
+
+Dependabot detectó la alerta #1 de este repositorio: `glib` 0.18.5, severidad media, implementación no segura de `VariantStrIter`. La corrección indicada es 0.20.0. Llega mediante el stack GTK de Tauri en plataformas Unix; no se compila en el instalador Windows x86_64, que usa WebView2. Cargo.lock también enumera dependencias de otras plataformas, aunque no se incluyan en ese binario.
+
+La alerta se mantiene abierta; no se descarta ni se fuerza una actualización incompatible. No se distribuye un paquete Linux. Antes de ofrecerlo debe actualizarse o corregirse ese árbol de dependencias y verificarse nuevamente. Referencia: https://github.com/JosuaPerez/clavelocal/security/dependabot/1
