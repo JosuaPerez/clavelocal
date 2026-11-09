@@ -1,11 +1,11 @@
 {
-  "version": "0.3.0",
-  "notes": "Importación CSV de Chrome/Brave con vista previa, actualizaciones verificadas e iconos de escritorio. Exporta una copia cifrada antes de instalar. Versión experimental sin firma de editor de Windows.",
-  "pub_date": "2026-11-09T21:55:56.083Z",
+  "version": "0.3.1",
+  "notes": "Perfil local con usuario y clave maestra, saludo al volver a abrir y edición desde Mi perfil. Las bóvedas existentes conservan sus contraseñas y pueden personalizarse después de abrirlas. Windows Hello/passkeys todavía no están disponibles. Exporta una copia cifrada antes de actualizar.",
+  "pub_date": "2026-11-09T22:45:24.700Z",
   "platforms": {
     "windows-x86_64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSZDJFbFpQYU9aSHlyakNiNVRVVkxFQnhPZ1RGVEhPMk8rUjBab0N0bXFpbkVwMVA0YThsN1YzL3VuQUk5NXNXUm9kU05kMEYzRlNoQk8xOGxoVzFUUHRjU1dieUdzNXdFPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzk0MjYxMzU0CWZpbGU6Q2xhdmVMb2NhbF8wLjMuMF94NjQtc2V0dXAuZXhlCXZlcnNpb246MC4zLjAKWTIrU0J2cy9Wa0VaY3E2allLV2R2Rnpxd21wN295K05Lb1JmUS94clI0S3JPd01yYkZ1QWRGUXR0cCswbjFXVW9hL2xxeE5xZkdrL1cwVCtBVy8zQ0E9PQo=",
-      "url": "https://github.com/JosuaPerez/clavelocal/releases/download/v0.3.0/ClaveLocal_0.3.0_x64-setup.exe"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSZDJFbFpQYU9aSDZUU0VTUjFNOFJWcTVYNTBQeHhTR3E2NnRkcTBsVzRoTmRNSlJSOTJ4VmdKcU5FT2ZIUERyQjRQRHlnSzJwK2pUYXdZRmtmTGxDRVFodFFRSTA4UEFVPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzk0MjY0MzIyCWZpbGU6Q2xhdmVMb2NhbF8wLjMuMV94NjQtc2V0dXAuZXhlCXZlcnNpb246MC4zLjEKUkZ5WGNucHBZaFlrR0pjUjZSTzU4azZUTEFJZ0xrWHhCRlFaWmJ5bFpRYU82ZVloakZ0ZEpkZ1lGOGh3bEkwTzJJVE5tV094aE91dzR1bDc2TVRIQnc9PQo=",
+      "url": "https://github.com/JosuaPerez/clavelocal/releases/download/v0.3.1/ClaveLocal_0.3.1_x64-setup.exe"
     }
   }
 }
