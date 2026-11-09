@@ -9,7 +9,7 @@
     "test": "node --test test/*.test.mjs",
     "test:e2e": "playwright test",
     "build": "node scripts/build.mjs",
-    "desktop:build": "tauri build",
+    "desktop:build": "tauri build -- --locked",
     "desktop:dev": "tauri dev"
   },
   "engines": {

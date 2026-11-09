@@ -31,6 +31,7 @@ Al participar aceptas el [Código de conducta](CODE_OF_CONDUCT.md).
 
 - Un PR de un fork ejecuta código no confiable en máquinas efímeras de GitHub, con token de lectura y sin secretos de publicación. No se usa `pull_request_target` ni runners propios.
 - Los workflows fijan las acciones a commits completos; las actualizaciones se revisan con Dependabot.
+- `package-lock.json` y `src-tauri/Cargo.lock` fijan las dependencias; la compilación de escritorio rechaza cambios implícitos del lockfile.
 - La ejecución de workflows de todos los colaboradores externos requiere aprobación del responsable antes de empezar. Aprobar su ejecución no equivale a aprobar ni fusionar el código.
 - CodeQL y la revisión de dependencias complementan las pruebas. No sustituyen la revisión humana.
 - CODEOWNERS asigna la revisión a @JosuaPerez. La protección de `main` exige checks y revisión para colaboradores; el administrador conserva el bypass para mantenimiento de un proyecto con un único responsable. No se fusionan PR automáticamente.
