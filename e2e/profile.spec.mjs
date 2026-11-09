@@ -87,3 +87,29 @@ test("un guardado que termina después de bloquear no repuebla la sesión ni el 
   await expect(page.locator("#vaultGreeting")).toHaveText("TU ESPACIO PRIVADO");
   await expect(page.locator("#vaultView")).not.toBeVisible();
 });
+test("ocultar la app durante el inicio cancela el desbloqueo pendiente", async ({ page }) => {
+  await page.goto("/");
+  await page.evaluate(() => {
+    const original = crypto.subtle.deriveKey.bind(crypto.subtle);
+    crypto.subtle.deriveKey = async (...args) => {
+      const key = await original(...args);
+      await new Promise((resolve) => { window.finishAuth = resolve; });
+      return key;
+    };
+  });
+  await page.locator("#authUsername").fill("Perfil de prueba");
+  await page.locator("#masterPassword").fill(password);
+  await page.locator("#confirmPassword").fill(password);
+  await page.locator("#authSubmit").click();
+  await page.waitForFunction(() => typeof window.finishAuth === "function");
+  await page.evaluate(() => {
+    Object.defineProperty(document, "hidden", { value: true, configurable: true });
+    document.dispatchEvent(new Event("visibilitychange"));
+    Object.defineProperty(document, "hidden", { value: false, configurable: true });
+    window.finishAuth();
+  });
+  await expect(page.locator("#authError")).not.toBeEmpty();
+  await expect(page.locator("#vaultView")).not.toBeVisible();
+  expect(await page.evaluate(() => localStorage.getItem("clavelocal.vault.v1"))).toBeNull();
+  await expect(page.locator("#masterPassword")).toHaveValue("");
+});

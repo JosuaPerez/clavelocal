@@ -669,7 +669,7 @@ function bindEvents() {
   $("#importButton").addEventListener("click", () => { elements.importFile.accept = ".json,application/json"; elements.importFile.click(); });
   elements.importFile.addEventListener("change", () => importVault(elements.importFile.files[0]));
   for (const name of ["pointerdown", "keydown"]) document.addEventListener(name, resetInactivityTimer, { passive: true });
-  document.addEventListener("visibilitychange", () => { if (document.hidden && (state.key || state.demo)) lockVault("Bóveda bloqueada al salir de la ventana"); });
+  document.addEventListener("visibilitychange", () => { if (document.hidden && (state.key || state.demo || busy)) lockVault("Bóveda bloqueada al salir de la ventana"); });
 }
 
 function setupUpdater() {
