@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'self'">
+    <meta name="color-scheme" content="dark">
+    <meta name="theme-color" content="#080b12">
+    <title>ClaveLocal — Bóveda de contraseñas</title>
+    <link rel="stylesheet" href="./styles.css">
+    <script src="./app.js" defer></script>
+  </head>
+  <body>
+    <div class="ambient ambient-one"></div>
+    <div class="ambient ambient-two"></div>
+
+    <main class="app-shell">
+      <header class="topbar">
+        <a class="brand" href="#" aria-label="ClaveLocal, inicio">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M7.5 10V7.5a4.5 4.5 0 0 1 9 0V10m-10 0h11a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-11a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2Zm5.5 4v3"/></svg>
+          </span>
+          <span><strong>Clave</strong>Local</span>
+        </a>
+        <div class="top-actions">
+          <span class="privacy-pill"><i></i> Solo en este PC</span>
+          <button class="icon-button hidden" id="lockButton" type="button" aria-label="Bloquear bóveda" title="Bloquear bóveda">
+            <svg viewBox="0 0 24 24"><path d="M7 10V7a5 5 0 0 1 10 0v3m-11 0h12a2 2 0 0 1 2 2v8H4v-8a2 2 0 0 1 2-2Z"/></svg>
+          </button>
+        </div>
+      </header>
+
+      <section id="welcomeView" class="welcome-view">
+        <div class="welcome-copy">
+          <p class="eyebrow"><span></span> PRIVACIDAD SIN COMPLICACIONES</p>
+          <h1>Tus contraseñas.<br><em>Bajo tu control.</em></h1>
+          <p class="lead">Crea contraseñas fuertes y guárdalas en una bóveda cifrada que nunca sale de tu computadora.</p>
+          <div class="benefits">
+            <div><span>01</span><p><strong>Cifrado AES-256</strong>Tu información queda protegida con tu clave maestra.</p></div>
+            <div><span>02</span><p><strong>Sin nube ni cuentas</strong>Nada que registrar, sincronizar o compartir.</p></div>
+            <div><span>03</span><p><strong>Listo para usar</strong>Genera, copia y organiza en segundos.</p></div>
+          </div>
+        </div>
+
+        <div class="auth-card glass-panel">
+          <div class="auth-icon"><svg viewBox="0 0 24 24"><path d="M12 3 4.5 6v5.4c0 4.7 3.2 8.2 7.5 9.6 4.3-1.4 7.5-4.9 7.5-9.6V6L12 3Zm0 5v8m-3-4h6"/></svg></div>
+          <p class="card-kicker" id="authKicker">PRIMER ACCESO</p>
+          <h2 id="authTitle">Crea tu bóveda</h2>
+          <p class="muted" id="authDescription">Elige una clave maestra. Será la única forma de abrir tus contraseñas.</p>
+
+          <form id="authForm" novalidate>
+            <label for="masterPassword">Clave maestra</label>
+            <div class="input-wrap">
+              <input id="masterPassword" type="password" autocomplete="new-password" minlength="12" placeholder="Mínimo 12 caracteres" required>
+              <button class="reveal-button" type="button" data-reveal="masterPassword" aria-label="Mostrar clave"><svg viewBox="0 0 24 24"><path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Zm9.5 3a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/></svg></button>
+            </div>
+            <div id="confirmGroup">
+              <label for="confirmPassword">Confirma tu clave</label>
+              <div class="input-wrap">
+                <input id="confirmPassword" type="password" autocomplete="new-password" placeholder="Repite la clave maestra">
+                <button class="reveal-button" type="button" data-reveal="confirmPassword" aria-label="Mostrar clave"><svg viewBox="0 0 24 24"><path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Zm9.5 3a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/></svg></button>
+              </div>
+            </div>
+            <p id="authError" class="form-error" role="alert"></p>
+            <button class="primary-button full" id="authSubmit" type="submit">Crear bóveda <span>→</span></button>
+          </form>
+          <p class="microcopy"><svg viewBox="0 0 24 24"><path d="M7 10V7a5 5 0 0 1 10 0v3m-11 0h12v10H6V10Z"/></svg> No podemos recuperar tu clave maestra. Guárdala bien.</p>
+        </div>
+      </section>
+
+      <section id="vaultView" class="vault-view hidden">
+        <aside class="sidebar glass-panel">
+          <div>
+            <p class="section-label">BÓVEDA</p>
+            <nav>
+              <button class="nav-item active" type="button" data-view="all"><span class="nav-icon">▦</span> Todas <b id="allCount">0</b></button>
+              <button class="nav-item" type="button" data-view="favorites"><span class="nav-icon">♡</span> Favoritas <b id="favoriteCount">0</b></button>
+            </nav>
+            <p class="section-label category-label">CATEGORÍAS</p>
+            <nav id="categoryNav"></nav>
+          </div>
+          <div class="sidebar-footer">
+            <button id="exportButton" type="button">Exportar copia cifrada</button>
+            <button id="importButton" type="button">Importar copia</button>
+            <input id="importFile" type="file" accept="application/json,.json" hidden>
+            <p><i></i> Bóveda cifrada y local</p>
+          </div>
+        </aside>
+
+        <div class="vault-content">
+          <div class="vault-header">
+            <div>
+              <p class="eyebrow"><span></span> TU ESPACIO PRIVADO</p>
+              <h2>Mis contraseñas</h2>
+              <p class="muted">Todo organizado, todo bajo llave.</p>
+            </div>
+            <button class="primary-button" id="newEntryButton" type="button">＋ Nueva contraseña</button>
+          </div>
+
+          <div class="search-row">
+            <div class="search-box">
+              <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m16 16 5 5"/></svg>
+              <input id="searchInput" type="search" placeholder="Buscar por sitio o usuario…" autocomplete="off">
+            </div>
+            <button class="generator-shortcut" id="openGeneratorButton" type="button"><span>✦</span> Generador</button>
+          </div>
+
+          <div id="entryList" class="entry-list" aria-live="polite"></div>
+          <div id="emptyState" class="empty-state">
+            <div class="empty-orbit"><span>＋</span></div>
+            <h3>Tu bóveda está esperando</h3>
+            <p>Crea tu primera contraseña segura y tenla siempre a mano.</p>
+            <button class="primary-button" id="emptyNewButton" type="button">Crear primera contraseña</button>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <dialog id="entryDialog" class="app-dialog">
+      <form id="entryForm" method="dialog" novalidate>
+        <div class="dialog-header"><div><p class="card-kicker">BÓVEDA</p><h2 id="entryDialogTitle">Nueva contraseña</h2></div><button class="dialog-close" value="cancel" aria-label="Cerrar" formnovalidate>×</button></div>
+        <input id="entryId" type="hidden">
+        <div class="form-grid">
+          <div class="span-two"><label for="entrySite">Sitio o aplicación</label><input id="entrySite" maxlength="80" placeholder="Ej. Netflix" required></div>
+          <div><label for="entryUsername">Usuario o correo</label><input id="entryUsername" maxlength="120" autocomplete="off" placeholder="tu@email.com"></div>
+          <div><label for="entryCategory">Categoría</label><select id="entryCategory"><option>Personal</option><option>Trabajo</option><option>Finanzas</option><option>Redes</option><option>Otros</option></select></div>
+          <div class="span-two"><label for="entryPassword">Contraseña</label><div class="input-wrap"><input id="entryPassword" type="password" autocomplete="new-password" required><button class="reveal-button" type="button" data-reveal="entryPassword" aria-label="Mostrar contraseña"><svg viewBox="0 0 24 24"><path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Zm9.5 3a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/></svg></button></div></div>
+          <div class="span-two strength-line"><span id="entryStrengthFill"></span><small id="entryStrengthLabel">Sin evaluar</small></div>
+          <div class="span-two"><label for="entryNotes">Notas</label><textarea id="entryNotes" maxlength="500" rows="3" placeholder="Información opcional"></textarea></div>
+        </div>
+        <p id="entryError" class="form-error" role="alert"></p>
+        <div class="dialog-actions"><button class="secondary-button" value="cancel" formnovalidate>Cancelar</button><button class="primary-button" id="saveEntryButton" value="default">Guardar contraseña</button></div>
+      </form>
+    </dialog>
+
+    <dialog id="generatorDialog" class="app-dialog generator-dialog">
+      <form method="dialog">
+        <div class="dialog-header"><div><p class="card-kicker">GENERADOR</p><h2>Una clave difícil de adivinar</h2></div><button class="dialog-close" value="cancel" aria-label="Cerrar">×</button></div>
+        <div class="generated-output"><output id="generatedPassword"></output><button id="copyGeneratedButton" type="button" aria-label="Copiar contraseña">Copiar</button></div>
+        <div class="strength-line generator-strength"><span id="generatorStrengthFill"></span><small id="generatorStrengthLabel"></small></div>
+        <div class="range-heading"><label for="passwordLength">Longitud</label><strong id="lengthValue">20</strong></div>
+        <input id="passwordLength" type="range" min="12" max="64" value="20">
+        <div class="option-grid">
+          <label><input id="useUppercase" type="checkbox" checked><span></span> Mayúsculas</label>
+          <label><input id="useLowercase" type="checkbox" checked><span></span> Minúsculas</label>
+          <label><input id="useNumbers" type="checkbox" checked><span></span> Números</label>
+          <label><input id="useSymbols" type="checkbox" checked><span></span> Símbolos</label>
+        </div>
+        <div class="dialog-actions"><button class="secondary-button" id="regenerateButton" type="button">↻ Generar otra</button><button class="primary-button" id="useGeneratedButton" value="default">Usar contraseña</button></div>
+      </form>
+    </dialog>
+
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  </body>
+</html>

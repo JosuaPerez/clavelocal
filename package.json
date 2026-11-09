@@ -1,0 +1,27 @@
+{
+  "name": "clavelocal",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Generador y bóveda de contraseñas local, privada y de código abierto.",
+  "type": "module",
+  "scripts": {
+    "start": "node server.mjs",
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/JosuaPerez/clavelocal.git"
+  },
+  "keywords": [
+    "password-manager",
+    "password-generator",
+    "privacy",
+    "security",
+    "web-crypto",
+    "spanish"
+  ]
+}
