@@ -2,6 +2,14 @@
 
 Todos los cambios importantes se documentarán aquí siguiendo un esquema inspirado en Keep a Changelog.
 
+## [0.3.2] - 2026-11-09
+
+- Paginación de 10 entradas en Todas, Favoritas, categorías y resultados de búsqueda.
+- Controles Anterior/Siguiente y contador de página al principio y al final de la lista.
+- Búsqueda sobre toda la categoría seleccionada, reinicio a la primera página al filtrar y ajuste automático al eliminar la última entrada de una página.
+- Acceso simplificado: demo discreta y centrada; recuperación y copia anterior trasladadas a Ayuda.
+- Pruebas de navegación con 500 entradas ficticias y recuperación desde la pantalla bloqueada mediante Ayuda.
+
 ## [0.3.1] - 2026-11-09
 
 - Creación de perfil local con usuario y clave maestra; bienvenida personalizada al volver a abrir la app.

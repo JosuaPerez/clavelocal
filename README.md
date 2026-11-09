@@ -16,6 +16,7 @@ ClaveLocal nace de una idea sencilla: una herramienta de contraseñas debería s
 - Bóveda cifrada con AES-256-GCM.
 - Derivación de clave con PBKDF2-SHA-256 y 600.000 iteraciones; migración de bóvedas antiguas después de autenticarlas.
 - Búsqueda, categorías y favoritos.
+- Listas de 10 entradas por página, con Anterior/Siguiente y búsqueda sobre todos los resultados de la categoría seleccionada.
 - Copia rápida y limpieza del portapapeles después de 30 segundos cuando el navegador lo permite.
 - Bloqueo automático tras 5 minutos sin actividad.
 - Exportación e importación de copias cifradas.
@@ -48,6 +49,8 @@ Si tienes 0.2, exporta una copia cifrada, cierra ClaveLocal e instala 0.3 manual
 El archivo se procesa en este equipo, sin enviarlo a servidores. El CSV original sigue conteniendo contraseñas sin cifrar: elimínalo tú de forma segura cuando termines de comprobar la migración. La app no lo borra ni lo modifica. Se admiten CSV UTF-8 con comas, punto y coma o tabuladores; tamaño máximo 4 MiB y hasta 5.000 entradas totales. Los valores demasiado largos se señalan como inválidos, sin truncarlos. El botón **Restaurar copia JSON** es un flujo diferente que reemplaza la bóveda completa tras verificarla.
 
 Consulta [las actualizaciones](docs/UPDATES.md) y [la firma de Windows](docs/WINDOWS_SIGNING.md).
+
+Desde 0.3.2, la pantalla de acceso muestra el botón de entrada y una demo discreta debajo. Para restaurar una copia o descargar la copia anterior sin abrir la bóveda, utiliza **Ayuda**, en la barra superior. La restauración JSON también permanece disponible dentro de la bóveda.
 
 La bóveda de escritorio se guarda cifrada en los datos de WebView2 de tu usuario. Es independiente de la del navegador: para migrar desde 0.1, exporta la copia desde el navegador y restáurala en la app. Conserva esa copia hasta verificar tus entradas.
 

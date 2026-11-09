@@ -9,7 +9,7 @@ Entradas, notas y clave maestra frente a la lectura del archivo de bóveda cuand
 - Malware, keyloggers, extensiones privilegiadas, acceso al proceso y una sesión desbloqueada quedan fuera de esa protección. No hay garantía de borrado físico de memoria JavaScript ni de historial del portapapeles de Windows.
 - El bloqueo vacía campos y listas, cancela callbacks de copia y elimina referencias de la sesión. Se activa por inactividad y al ocultar el documento. No se promete integración con suspensión/bloqueo de sesión de Windows en esta versión.
 - La bóveda local cifrada puede ser copiada y atacada offline. Una clave maestra larga y única es esencial; limitar intentos en la interfaz no detiene ese ataque.
-- La copia anterior está en el mismo dispositivo: ayuda a recuperar una escritura, pero no sustituye una copia externa cifrada. Se descarga desde la pantalla inicial. Limpiar datos del navegador/WebView o perder el equipo puede destruir ambas.
+- La copia anterior está en el mismo dispositivo: ayuda a recuperar una escritura, pero no sustituye una copia externa cifrada. Se descarga desde Ayuda, incluso con la bóveda bloqueada. Limpiar datos del navegador/WebView o perder el equipo puede destruir ambas.
 - Los metadatos del envoltorio se validan estrictamente; importaciones se descifran y validan antes de reemplazar. Se permiten solo factores KDF conocidos para evitar trabajo arbitrario. El tamaño máximo es 4 MiB y 5.000 entradas.
 - Escrituras usan Web Locks y comparación de versión almacenada. Se rechazan ventanas obsoletas y se bloquea al recibir cambios de almacenamiento.
 

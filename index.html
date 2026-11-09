@@ -24,7 +24,7 @@
         </a>
         <div class="top-actions">
           <button id="checkUpdatesButton" class="secondary-button" type="button" hidden>Buscar actualizaciones</button>
-          <a href="https://github.com/JosuaPerez/clavelocal/issues/new?template=feedback.yml" target="_blank" rel="noopener noreferrer">Enviar comentarios</a>
+          <button id="helpButton" class="text-button" type="button">Ayuda</button>
           <span class="privacy-pill"><i></i> Solo en este PC</span>
           <button class="icon-button hidden" id="lockButton" type="button" aria-label="Bloquear bóveda" title="Bloquear bóveda">
             <svg viewBox="0 0 24 24"><path d="M7 10V7a5 5 0 0 1 10 0v3m-11 0h12a2 2 0 0 1 2 2v8H4v-8a2 2 0 0 1 2-2Z"/></svg>
@@ -72,10 +72,7 @@
             <p id="authError" class="form-error" role="alert"></p>
             <button class="primary-button full" id="authSubmit" type="submit">Crear bóveda <span>→</span></button>
           </form>
-          <button class="secondary-button full" id="demoButton" type="button">Probar con datos ficticios</button>
-          <button class="secondary-button full" id="restoreButton" type="button">Restaurar copia cifrada</button>
-          <button class="secondary-button full" id="previousBackupButton" type="button">Descargar copia anterior</button>
-          <p class="microcopy">La bóveda se guarda en este navegador y perfil. Exporta una copia: borrar los datos del navegador también borra la bóveda.</p>
+          <button class="demo-link" id="demoButton" type="button">Probar con datos ficticios</button>
           <p class="microcopy"><svg viewBox="0 0 24 24"><path d="M7 10V7a5 5 0 0 1 10 0v3m-11 0h12v10H6V10Z"/></svg> No podemos recuperar tu clave maestra. Guárdala bien.</p>
         </div>
       </section>
@@ -119,16 +116,34 @@
             <button class="generator-shortcut" id="openGeneratorButton" type="button"><span>✦</span> Generador</button>
           </div>
 
+          <nav id="entryPagination" class="entry-pagination" aria-label="Páginas de contraseñas" hidden>
+            <span class="page-summary" role="status" aria-live="polite"></span>
+            <div class="page-actions"><button type="button" class="secondary-button" data-page-step="-1" aria-controls="entryList">← Anterior</button><button type="button" class="secondary-button" data-page-step="1" aria-controls="entryList">Siguiente →</button></div>
+          </nav>
           <div id="entryList" class="entry-list" aria-live="polite"></div>
+          <nav id="entryPaginationBottom" class="entry-pagination" aria-label="Páginas de contraseñas, al final de la lista" hidden>
+            <span class="page-summary" aria-hidden="true"></span>
+            <div class="page-actions"><button type="button" class="secondary-button" data-page-step="-1" aria-controls="entryList">← Anterior</button><button type="button" class="secondary-button" data-page-step="1" aria-controls="entryList">Siguiente →</button></div>
+          </nav>
           <div id="emptyState" class="empty-state">
             <div class="empty-orbit"><span>＋</span></div>
-            <h3>Tu bóveda está esperando</h3>
-            <p>Crea tu primera contraseña segura y tenla siempre a mano.</p>
+            <h3 id="emptyStateTitle">Tu bóveda está esperando</h3>
+            <p id="emptyStateDescription">Crea tu primera contraseña segura y tenla siempre a mano.</p>
             <button class="primary-button" id="emptyNewButton" type="button">Crear primera contraseña</button>
           </div>
         </div>
       </section>
     </main>
+
+    <dialog id="helpDialog" class="app-dialog">
+      <div class="help-content">
+        <div class="dialog-header"><h2>Ayuda y recuperación</h2><button id="closeHelp" type="button" class="dialog-close" aria-label="Cerrar ayuda">×</button></div>
+        <p>La bóveda se guarda en este navegador o en la aplicación de este usuario. Exporta una copia cifrada: borrar los datos del navegador o de la app también puede borrar la bóveda.</p>
+        <div class="recovery-actions"><button class="secondary-button" id="restoreButton" type="button">Restaurar copia cifrada</button><button class="secondary-button" id="previousBackupButton" type="button">Descargar copia anterior</button></div>
+        <p>Las copias requieren su clave maestra. No podemos recuperarla ni desbloquear una bóveda sin ella.</p>
+        <a href="https://github.com/JosuaPerez/clavelocal/issues/new?template=feedback.yml" target="_blank" rel="noopener noreferrer">Enviar comentarios ↗</a>
+      </div>
+    </dialog>
 
     <dialog id="profileDialog" class="app-dialog">
       <form id="profileForm" novalidate>

@@ -4,6 +4,7 @@ import { STORAGE_KEY, MAX_FILE_BYTES, VaultStore, randomBytes, deriveKey, encryp
 import { parseCsv, planCsvImport } from "./csv.mjs";
 import { PROFILE_KEY, normalizeUsername, readCachedProfile, cacheProfile } from "./profile.mjs";
 const INACTIVITY_MS = 5 * 60 * 1000;
+const PAGE_SIZE = 10;
 const store = new VaultStore(localStorage);
 let pendingImport = null;
 let busy = false;
@@ -16,6 +17,7 @@ const state = {
   key: null,
   vault: { version: 1, entries: [] },
   filter: "all",
+  page: 1,
   inactivityTimer: null,
   clipboardTimer: null,
   salt: null,
@@ -69,7 +71,7 @@ function configureAuth() {
   let exists;
   try { exists = Boolean(getStoredVault()); }
   catch {
-    elements.authError.textContent = "No se puede leer la bóveda. Conservamos los datos: restaura una copia válida o revisa el almacenamiento del navegador.";
+    elements.authError.textContent = "No se puede leer la bóveda. Conservamos los datos: abre Ayuda para restaurar una copia válida o revisa el almacenamiento del navegador.";
     elements.authSubmit.disabled = true;
     return;
   }
@@ -142,6 +144,7 @@ function unlockUi() {
   elements.vaultView.classList.remove("hidden");
   elements.lockButton.classList.remove("hidden");
   state.filter = "all";
+  state.page = 1;
   elements.searchInput.value = "";
   renderProfile();
   renderEntries();
@@ -153,12 +156,14 @@ function lockVault(message = "Bóveda bloqueada") {
   state.key = null;
   state.salt = null;
   state.vault = { version: 1, entries: [] };
+  state.page = 1;
   clearTimeout(state.inactivityTimer);
   clearTimeout(state.clipboardTimer);
   elements.entryForm.reset();
   elements.authForm.reset();
   $("#profileForm").reset();
   $("#profileDialog").close();
+  $("#helpDialog").close();
   $("#vaultGreeting").textContent = "TU ESPACIO PRIVADO";
   $("#importForm").reset();
   pendingImport = null;
@@ -168,6 +173,7 @@ function lockVault(message = "Bóveda bloqueada") {
   for (const id of ["masterPassword", "confirmPassword", "entryPassword"]) document.getElementById(id).type = "password";
   elements.generatedPassword.textContent = "";
   elements.entryList.replaceChildren();
+  $$(".entry-pagination").forEach((pagination) => { pagination.hidden = true; pagination.querySelector(".page-summary").textContent = ""; });
   elements.categoryNav.replaceChildren();
   elements.searchInput.value = "";
   elements.allCount.textContent = "0";
@@ -216,7 +222,10 @@ function renderEntries() {
     .filter((entry) => `${entry.site} ${entry.username}`.toLocaleLowerCase("es").includes(query))
     .sort((a, b) => a.site.localeCompare(b.site, "es"));
 
-  for (const entry of filtered) {
+  const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  state.page = Math.max(1, Math.min(state.page, pageCount));
+  const start = (state.page - 1) * PAGE_SIZE;
+  for (const entry of filtered.slice(start, start + PAGE_SIZE)) {
     const card = document.createElement("article");
     card.className = "entry-card";
 
@@ -253,6 +262,15 @@ function renderEntries() {
   }
 
   elements.emptyState.classList.toggle("hidden", filtered.length > 0);
+  $("#emptyStateTitle").textContent = state.vault.entries.length ? "No hay coincidencias" : "Tu bóveda está esperando";
+  $("#emptyStateDescription").textContent = state.vault.entries.length ? "Prueba otra búsqueda o categoría." : "Crea tu primera contraseña segura y tenla siempre a mano.";
+  $("#emptyNewButton").hidden = state.vault.entries.length > 0;
+  for (const pagination of $$(".entry-pagination")) {
+    pagination.hidden = filtered.length === 0;
+    pagination.querySelector(".page-summary").textContent = filtered.length ? `${start + 1}–${Math.min(start + PAGE_SIZE, filtered.length)} de ${filtered.length} · Página ${state.page} de ${pageCount}` : "";
+    pagination.querySelector('[data-page-step="-1"]').disabled = state.page === 1;
+    pagination.querySelector('[data-page-step="1"]').disabled = state.page === pageCount;
+  }
   elements.allCount.textContent = String(state.vault.entries.length);
   elements.favoriteCount.textContent = String(state.vault.entries.filter((entry) => entry.favorite).length);
   renderCategoryNav();
@@ -278,6 +296,7 @@ function renderCategoryNav() {
 
 function setFilter(filter) {
   state.filter = filter;
+  state.page = 1;
   renderEntries();
 }
 
@@ -531,6 +550,7 @@ async function confirmCsv(event) {
     await persistVault(next);
     $("#csvDialog").close();
     clearCsv();
+    state.page = 1;
     renderEntries();
     showToast(`${count} contraseñas importadas y cifradas. Verifica tus entradas y exporta una copia cifrada.`);
   } catch (error) { $("#csvError").textContent = error.message; $("#confirmCsv").disabled = false; }
@@ -613,6 +633,14 @@ function showToast(message) {
 }
 
 function bindEvents() {
+  $("#helpButton").addEventListener("click", () => $("#helpDialog").showModal());
+  $("#closeHelp").addEventListener("click", () => $("#helpDialog").close());
+  $$("[data-page-step]").forEach((button) => button.addEventListener("click", () => {
+    if (button.disabled || (!state.key && !state.demo)) return;
+    state.page += Number(button.dataset.pageStep);
+    renderEntries();
+    $("#entryPagination").scrollIntoView({ block: "start", behavior: "auto" });
+  }));
   $("#profileButton").addEventListener("click", showProfileDialog);
   $("#profileForm").addEventListener("submit", saveProfile);
   $("#cancelProfile").addEventListener("click", () => $("#profileDialog").close());
@@ -630,7 +658,7 @@ function bindEvents() {
     } catch { showToast("No se puede leer la copia anterior."); }
   });
   $("#demoButton").addEventListener("click", startDemo);
-  $("#restoreButton").addEventListener("click", () => { elements.importFile.accept = ".json,application/json"; elements.importFile.click(); });
+  $("#restoreButton").addEventListener("click", () => { $("#helpDialog").close(); elements.importFile.accept = ".json,application/json"; elements.importFile.click(); });
   $("#importForm").addEventListener("submit", confirmImport);
   $("#cancelImport").addEventListener("click", () => { pendingImport = null; $("#importForm").reset(); $("#importDialog").close(); });
   $("#importDialog").addEventListener("close", () => { pendingImport = null; $("#importForm").reset(); });
@@ -651,7 +679,7 @@ function bindEvents() {
   $("#emptyNewButton").addEventListener("click", () => openEntryDialog());
   elements.entryForm.addEventListener("submit", saveEntry);
   elements.entryPassword.addEventListener("input", () => updateStrength(elements.entryPassword.value, elements.entryStrengthFill, elements.entryStrengthLabel));
-  elements.searchInput.addEventListener("input", renderEntries);
+  elements.searchInput.addEventListener("input", () => { state.page = 1; renderEntries(); });
   $("#openGeneratorButton").addEventListener("click", openGenerator);
   $("#regenerateButton").addEventListener("click", refreshGeneratedPassword);
   $("#copyGeneratedButton").addEventListener("click", () => copySecret(elements.generatedPassword.textContent));
