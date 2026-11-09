@@ -1,0 +1,11 @@
+{
+  "version": "0.3.0",
+  "notes": "Importación CSV de Chrome/Brave con vista previa, actualizaciones verificadas e iconos de escritorio. Exporta una copia cifrada antes de instalar. Versión experimental sin firma de editor de Windows.",
+  "pub_date": "2026-11-09T21:55:56.083Z",
+  "platforms": {
+    "windows-x86_64": {
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSZDJFbFpQYU9aSHlyakNiNVRVVkxFQnhPZ1RGVEhPMk8rUjBab0N0bXFpbkVwMVA0YThsN1YzL3VuQUk5NXNXUm9kU05kMEYzRlNoQk8xOGxoVzFUUHRjU1dieUdzNXdFPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzk0MjYxMzU0CWZpbGU6Q2xhdmVMb2NhbF8wLjMuMF94NjQtc2V0dXAuZXhlCXZlcnNpb246MC4zLjAKWTIrU0J2cy9Wa0VaY3E2allLV2R2Rnpxd21wN295K05Lb1JmUS94clI0S3JPd01yYkZ1QWRGUXR0cCswbjFXVW9hL2xxeE5xZkdrL1cwVCtBVy8zQ0E9PQo=",
+      "url": "https://github.com/JosuaPerez/clavelocal/releases/download/v0.3.0/ClaveLocal_0.3.0_x64-setup.exe"
+    }
+  }
+}
