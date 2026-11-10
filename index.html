@@ -90,6 +90,7 @@
           </div>
           <div class="sidebar-footer">
             <button id="profileButton" type="button">Mi perfil</button>
+            <button id="settingsButton" type="button">Ajustes de bloqueo</button>
             <button id="csvImportButton" type="button">Importar contraseñas CSV</button>
             <button id="exportButton" type="button">Exportar copia cifrada</button>
             <button id="importButton" type="button">Restaurar copia JSON</button>
@@ -145,6 +146,20 @@
         <p>La copia anterior conserva la versión previa al último cambio guardado o migración. Abrir y bloquear no la reemplazan. No sustituye una copia externa.</p>
         <a href="https://github.com/JosuaPerez/clavelocal/issues/new?template=feedback.yml" target="_blank" rel="noopener noreferrer">Enviar comentarios ↗</a>
       </div>
+    </dialog>
+
+    <dialog id="settingsDialog" class="app-dialog" aria-labelledby="settingsTitle">
+      <form id="settingsForm">
+        <h2 id="settingsTitle">Ajustes de bloqueo</h2>
+        <label for="idleMinutes">Bloquear por inactividad</label>
+        <select id="idleMinutes"><option value="1">1 minuto</option><option value="5">5 minutos (recomendado)</option><option value="15">15 minutos</option><option value="30">30 minutos</option></select>
+        <p class="microcopy">Cuenta el tiempo sin usar el teclado o ratón dentro de la bóveda. Un plazo mayor la deja abierta durante más tiempo.</p>
+        <label for="hiddenSeconds">Al ocultar la ventana o cambiar de pestaña</label>
+        <select id="hiddenSeconds"><option value="0">Bloquear inmediatamente (recomendado)</option><option value="15">Esperar 15 segundos</option><option value="60">Esperar 60 segundos</option></select>
+        <p class="microcopy">La espera facilita pegar una contraseña en otra app. Durante ese plazo la bóveda sigue abierta en memoria. El bloqueo por inactividad continúa contando. Bloquear manualmente y cerrar siempre bloquean de inmediato.</p>
+        <p class="form-error" id="settingsError" role="alert"></p>
+        <div class="dialog-actions"><button id="cancelSettings" class="secondary-button" type="button">Cancelar</button><button id="saveSettings" class="primary-button" type="submit">Guardar ajustes</button></div>
+      </form>
     </dialog>
 
     <dialog id="profileDialog" class="app-dialog">

@@ -4,6 +4,9 @@ Todos los cambios importantes se documentarán aquí siguiendo un esquema inspir
 
 ## [Sin publicar]
 
+- Ajustes cifrados de bloqueo: inactividad de 1/5/15/30 minutos y bloqueo al ocultar inmediato o con 15/60 segundos de espera. Se mantienen los valores predeterminados de 5 minutos e inmediato.
+- Las bóvedas sin ajustes se abren sin migración adicional. Las funciones publicadas de 0.3.2 aceptan y conservan el campo al guardar, pero ignoran sus opciones y aplican su bloqueo fijo (probado con funciones congeladas de esa versión, no con un instalador antiguo).
+
 - Limpieza de portapapeles que no se cancela al bloquear; navegador con reintento al volver y aviso si no tiene permiso.
 - Comando nativo de copia en Windows con exclusión de historial/sincronización, temporizador independiente de la UI, comparación bajo bloqueo del portapapeles e intento de limpieza al cerrar.
 

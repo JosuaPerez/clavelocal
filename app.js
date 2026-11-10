@@ -5,7 +5,7 @@ import { parseCsv, planCsvImport } from "./csv.mjs";
 import { PROFILE_KEY, normalizeUsername, readCachedProfile, cacheProfile } from "./profile.mjs";
 import { openSession } from "./session.mjs";
 import { createClipboardCleaner } from "./clipboard.mjs";
-const INACTIVITY_MS = 5 * 60 * 1000;
+import { createLockPolicy, DEFAULT_SETTINGS, validateSettings } from "./settings.mjs";
 const PAGE_SIZE = 10;
 const store = new VaultStore(localStorage);
 let pendingImport = null;
@@ -20,7 +20,6 @@ const state = {
   vault: { version: 1, entries: [] },
   filter: "all",
   page: 1,
-  inactivityTimer: null,
   salt: null,
   iterations: null,
   demo: false,
@@ -28,6 +27,7 @@ const state = {
 
 const $ = (selector) => document.querySelector(selector);
 const $$ = (selector) => [...document.querySelectorAll(selector)];
+const lockPolicy = createLockPolicy({ lock: (message) => lockVault(message) });
 
 const elements = {
   welcomeView: $("#welcomeView"), vaultView: $("#vaultView"), lockButton: $("#lockButton"),
@@ -151,7 +151,8 @@ function unlockUi() {
   elements.searchInput.value = "";
   renderProfile();
   renderEntries();
-  resetInactivityTimer();
+  $("#settingsButton").disabled = state.demo;
+  lockPolicy.start(state.vault.settings || DEFAULT_SETTINGS, document.hidden);
 }
 
 function lockVault(message = "Bóveda bloqueada") {
@@ -163,7 +164,10 @@ function lockVault(message = "Bóveda bloqueada") {
   $("#vaultNotice").hidden = true;
   state.vault = { version: 1, entries: [] };
   state.page = 1;
-  clearTimeout(state.inactivityTimer);
+  lockPolicy.stop();
+  $("#settingsDialog").close();
+  $("#settingsForm").reset();
+  $("#settingsError").textContent = "";
   elements.entryForm.reset();
   elements.authForm.reset();
   $("#profileForm").reset();
@@ -199,8 +203,31 @@ function lockVault(message = "Bóveda bloqueada") {
 
 function resetInactivityTimer() {
   if (!state.key) return;
-  clearTimeout(state.inactivityTimer);
-  state.inactivityTimer = setTimeout(() => lockVault("Bóveda bloqueada por inactividad"), INACTIVITY_MS);
+  lockPolicy.activity();
+}
+
+function showSettings() {
+  if (!state.key || state.demo || busy) return;
+  const settings = state.vault.settings || DEFAULT_SETTINGS;
+  $("#idleMinutes").value = String(settings.idleMinutes);
+  $("#hiddenSeconds").value = String(settings.hiddenSeconds);
+  $("#settingsError").textContent = "";
+  $("#settingsDialog").showModal();
+  $("#idleMinutes").focus();
+}
+
+async function saveSettings(event) {
+  event.preventDefault();
+  if (!state.key || state.demo || busy) return;
+  try {
+    const settings = validateSettings({ idleMinutes: Number($("#idleMinutes").value), hiddenSeconds: Number($("#hiddenSeconds").value) });
+    await persistVault({ ...state.vault, settings });
+    // A late save must not start a new grace period while the window is hidden.
+    if (document.hidden) { lockVault("Ajustes guardados. Bóveda bloqueada al salir de la ventana"); return; }
+    lockPolicy.start(settings, document.hidden);
+    $("#settingsDialog").close();
+    showToast("Ajustes de bloqueo guardados y cifrados.");
+  } catch (error) { if (state.key) $("#settingsError").textContent = error.message; }
 }
 
 function createButton(label, iconPath, handler, className = "") {
@@ -642,6 +669,9 @@ function showToast(message) {
 }
 
 function bindEvents() {
+  $("#settingsButton").addEventListener("click", showSettings);
+  $("#settingsForm").addEventListener("submit", saveSettings);
+  $("#cancelSettings").addEventListener("click", () => $("#settingsDialog").close());
   $("#helpButton").addEventListener("click", () => $("#helpDialog").showModal());
   $("#closeHelp").addEventListener("click", () => $("#helpDialog").close());
   $$("[data-page-step]").forEach((button) => button.addEventListener("click", () => {
@@ -711,8 +741,10 @@ function bindEvents() {
   for (const name of ["pointerdown", "keydown"]) document.addEventListener(name, resetInactivityTimer, { passive: true });
   document.addEventListener("visibilitychange", () => {
     if (!document.hidden) void clipboardCleaner.wipeIfUnchanged();
-    if (document.hidden && (state.key || state.demo || busy)) lockVault("Bóveda bloqueada al salir de la ventana");
+    if (document.hidden && busy && !state.key) lockVault("Bóveda bloqueada al salir de la ventana");
+    else lockPolicy.visibility(document.hidden);
   });
+  window.addEventListener("pagehide", () => lockVault("Bóveda bloqueada al cerrar"));
 }
 
 function setupUpdater() {
