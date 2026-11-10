@@ -4,6 +4,9 @@ Todos los cambios importantes se documentarán aquí siguiendo un esquema inspir
 
 ## [Sin publicar]
 
+- Apertura sin volver a cifrar ni rotar la copia anterior cuando no se requiere migración. Una migración que no se puede guardar permite abrir con los parámetros originales y muestra un aviso.
+- Recuperación de la copia anterior si falla la escritura principal; aviso explícito si también falla esa recuperación.
+
 - Vectores fijos de compatibilidad del formato v1, con 310.000 y 600.000 iteraciones, rechazo de alteraciones y conservación del contenido al migrar.
 
 ## [0.3.2] - 2026-11-09

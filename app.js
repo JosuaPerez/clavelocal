@@ -3,6 +3,7 @@
 import { STORAGE_KEY, MAX_FILE_BYTES, VaultStore, randomBytes, deriveKey, encryptVault, openVault, validateEnvelope } from "./vault.mjs";
 import { parseCsv, planCsvImport } from "./csv.mjs";
 import { PROFILE_KEY, normalizeUsername, readCachedProfile, cacheProfile } from "./profile.mjs";
+import { openSession } from "./session.mjs";
 const INACTIVITY_MS = 5 * 60 * 1000;
 const PAGE_SIZE = 10;
 const store = new VaultStore(localStorage);
@@ -21,6 +22,7 @@ const state = {
   inactivityTimer: null,
   clipboardTimer: null,
   salt: null,
+  iterations: null,
   demo: false,
 };
 
@@ -57,7 +59,7 @@ async function persistVault(next) {
   busy = true;
   const generation = session;
   try {
-    const encrypted = await encryptVault(state.key, next, state.salt);
+    const encrypted = await encryptVault(state.key, next, state.salt, state.iterations);
     await withStorageLock(() => {
       if (generation !== session || !state.key) throw new Error("La bóveda se bloqueó antes de guardar. Vuelve a abrirla.");
       store.commit(encrypted);
@@ -113,25 +115,26 @@ async function handleAuth(event) {
   elements.authSubmit.disabled = true;
   try {
     await withStorageLock(async () => {
-      const stored = getStoredVault();
-      if (!stored && password !== elements.confirmPassword.value) throw new Error("Las claves no coinciden.");
-      const opened = stored ? await openVault(password, stored) : { vault: { version: 1, entries: [], profile: { version: 1, username: normalizeUsername($("#authUsername").value) } } };
-      const salt = randomBytes(16);
-      const key = await deriveKey(password, salt);
-      const encrypted = await encryptVault(key, opened.vault, salt);
+      const opened = await openSession(store, password, () => {
+        if (password !== elements.confirmPassword.value) throw new Error("Las claves no coinciden.");
+        return { version: 1, entries: [], profile: { version: 1, username: normalizeUsername($("#authUsername").value) } };
+      }, () => generation === session);
       if (generation !== session) throw new Error("Operación cancelada");
-      // Old KDF parameters are migrated only after successful authentication.
-      store.commit(encrypted);
-      state.key = key;
-      state.salt = salt;
+      state.key = opened.key;
+      state.salt = opened.salt;
+      state.iterations = opened.iterations;
       state.vault = opened.vault;
+      $("#vaultNotice").textContent = opened.warning;
+      $("#vaultNotice").hidden = !opened.warning;
     });
     if (generation !== session || !state.key) return;
     elements.authForm.reset();
     unlockUi();
-  } catch {
+  } catch (error) {
     state.key = null;
-    elements.authError.textContent = "No se pudo abrir o guardar la bóveda. Revisa la clave, la copia y el espacio disponible. Los datos anteriores se conservan.";
+    state.salt = null;
+    state.iterations = null;
+    elements.authError.textContent = error.name === "StorageWriteError" ? error.message : "No se pudo abrir o guardar la bóveda. Revisa la clave, la copia y el espacio disponible.";
   } finally {
     busy = false;
     elements.authSubmit.disabled = false;
@@ -155,6 +158,9 @@ function lockVault(message = "Bóveda bloqueada") {
   session += 1;
   state.key = null;
   state.salt = null;
+  state.iterations = null;
+  $("#vaultNotice").textContent = "";
+  $("#vaultNotice").hidden = true;
   state.vault = { version: 1, entries: [] };
   state.page = 1;
   clearTimeout(state.inactivityTimer);
