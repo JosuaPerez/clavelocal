@@ -18,7 +18,13 @@ La hoja de ruta es orientativa. Las decisiones se debatirán públicamente media
 - Bloqueo al suspender o cerrar sesión en el equipo.
 - Flujo seguro de cambio de clave maestra y revisión del almacenamiento nativo.
 
-## 0.4 — Interoperabilidad
+## 0.4 — Recuperación, bloqueo y portapapeles
+
+- Desbloqueo sin escrituras innecesarias y recuperación de la copia anterior ante fallos de guardado.
+- Ajustes cifrados de bloqueo y limpieza del portapapeles independiente del bloqueo.
+- [Notas de la versión 0.4.0](releases/v0.4.0.md).
+
+## Interoperabilidad (pendiente)
 
 - Importación segura desde formatos comunes.
 - Exportación controlada con advertencias explícitas.

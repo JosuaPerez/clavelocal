@@ -1,7 +1,12 @@
 import { test, expect } from "@playwright/test";
-test("demo pública aislada y enlaces de acceso", async ({ page }) => {
+test("demo pública aislada y enlace coherente con el canal de actualización", async ({ page, request }) => {
   await page.goto("http://127.0.0.1:4174/");
-  await expect(page.getByRole("link", { name: "Descargar para Windows" })).toHaveAttribute("href", "https://github.com/JosuaPerez/clavelocal/releases/download/v0.3.2/ClaveLocal_0.3.2_x64-setup.exe");
+  const response = await request.get("http://127.0.0.1:4174/updates/windows.json");
+  await expect(response).toBeOK();
+  const feed = await response.json();
+  expect(feed.version).toBe("0.4.0");
+  expect(feed.platforms["windows-x86_64"].url).toBe("https://github.com/JosuaPerez/clavelocal/releases/download/v0.4.0/ClaveLocal_0.4.0_x64-setup.exe");
+  await expect(page.getByRole("link", { name: "Descargar para Windows" })).toHaveAttribute("href", feed.platforms["windows-x86_64"].url);
   await page.getByRole("link", { name: "Probar demo" }).click();
   await expect(page.locator("#authForm")).toBeHidden();
   await expect(page.locator("#restoreButton")).toBeHidden();
