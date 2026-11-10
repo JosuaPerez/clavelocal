@@ -43,8 +43,10 @@ Las pruebas de compatibilidad abren dos archivos cifrados fijos con datos fictic
 
 Auditoría independiente, revisión específica de APIs nativas, firma de distribución, pruebas con usuarios en Windows y bloqueo integrado con eventos del sistema. No presentar 0.2 como producto auditado ni como único almacén de secretos críticos.
 
-## Alertas conocidas al publicar 0.2
+## GLib y la alerta de Dependabot #1
 
 Dependabot detectó la alerta #1 de este repositorio: `glib` 0.18.5, severidad media, implementación no segura de `VariantStrIter`. La corrección indicada es 0.20.0. Llega mediante el stack GTK de Tauri en plataformas Unix; no se compila en el instalador Windows x86_64, que usa WebView2. Cargo.lock también enumera dependencias de otras plataformas, aunque no se incluyan en ese binario.
 
-La alerta se mantiene abierta; no se descarta ni se fuerza una actualización incompatible. No se distribuye un paquete Linux. Antes de ofrecerlo debe actualizarse o corregirse ese árbol de dependencias y verificarse nuevamente. Referencia: https://github.com/JosuaPerez/clavelocal/security/dependabot/1
+Se incorpora el arreglo original de los mantenedores en una copia local de GLib 0.18.5 mediante `[patch.crates-io]`. Solo cambian las dos líneas del argumento mutable de `VariantStrIter::impl_get`; se verifican los hashes de todos los archivos oficiales y se ejecuta una regresión optimizada en Linux. Se mantiene el número de versión original, las licencias y la procedencia. No se fuerza GLib 0.20 en el árbol GTK 0.18 ni se cambia a una versión alfa de Tauri.
+
+La alerta no se descarta: Dependabot evalúa main y su estado se debe comprobar después de fusionar. Una copia local puede quedar fuera del seguimiento automático del registro, por lo que la prueba de procedencia y el mantenimiento del backport son obligatorios; no se interpreta la desaparición de un aviso como auditoría. No se distribuye una app Linux y este parche no valida todo su árbol ni habilita soporte Linux. Véase [GLIB_BACKPORT.md](../security/GLIB_BACKPORT.md).

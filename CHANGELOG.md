@@ -8,6 +8,8 @@ Todos los cambios importantes se documentarán aquí siguiendo un esquema inspir
 - Recuperación de la copia anterior si falla la escritura principal; aviso explícito si también falla esa recuperación.
 
 - Vectores fijos de compatibilidad del formato v1, con 310.000 y 600.000 iteraciones, rechazo de alteraciones y conservación del contenido al migrar.
+- Backport verificable de la corrección original de GLib para GHSA-wrw7-89jp-8q8g, conservando compatibilidad con GTK/Tauri 2. Prueba Linux del iterador con optimizaciones y comprobación de procedencia de los archivos vendorizados.
+- Un cierre tardío del diálogo CSV ya no vacía una importación reabierta; regresión reproducible añadida durante la validación.
 
 ## [0.3.2] - 2026-11-09
 
