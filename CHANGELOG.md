@@ -2,6 +2,10 @@
 
 Todos los cambios importantes se documentarán aquí siguiendo un esquema inspirado en Keep a Changelog.
 
+## [Sin publicar]
+
+- Vectores fijos de compatibilidad del formato v1, con 310.000 y 600.000 iteraciones, rechazo de alteraciones y conservación del contenido al migrar.
+
 ## [0.3.2] - 2026-11-09
 
 - Paginación de 10 entradas en Todas, Favoritas, categorías y resultados de búsqueda.

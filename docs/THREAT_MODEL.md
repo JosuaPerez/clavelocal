@@ -35,6 +35,8 @@ Dependabot, CodeQL, revisión de dependencias, fijación de acciones y protecci�
 
 ## Verificación pendiente
 
+Las pruebas de compatibilidad abren dos archivos cifrados fijos con datos ficticios del formato v1 publicado (310.000 y 600.000 iteraciones), rechazan un byte alterado y verifican la conservación del contenido al migrar. No se regeneran durante las pruebas y no constituyen una auditoría independiente.
+
 Auditoría independiente, revisión específica de APIs nativas, firma de distribución, pruebas con usuarios en Windows y bloqueo integrado con eventos del sistema. No presentar 0.2 como producto auditado ni como único almacén de secretos críticos.
 
 ## Alertas conocidas al publicar 0.2

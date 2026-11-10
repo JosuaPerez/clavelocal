@@ -1,0 +1,13 @@
+{
+  "format": "clavelocal-v1",
+  "kdf": {
+    "name": "PBKDF2-SHA256",
+    "iterations": 310000,
+    "salt": "CSGj+O7rF7wDJGnFDtyRdw=="
+  },
+  "cipher": {
+    "name": "AES-256-GCM",
+    "iv": "GuG4SKqf2XLSl8TY",
+    "data": "/ynnprqHdHM4EYWi/OCVfxn7LM40fOIXWnwCc4mvjItubom2ZOFIoW7gAuNl7DIOoXrhBdZ7kzlMMsjvwNslwCiFCzt9xH2yBCPZk99JrEpz/dIoQUyb2IkuNm7o3vZN+PaD0nG+xyhWwynSMqdWxXspmtSFMtuRGQr/rV/x0maUXyj7lZIeQNotvBDslYmitcOmyF0f/4ODW+CdRd4SgKi2HijeiFKwd0hAQnWDaITUQk02QTdOTLXdGp4uX6BBeb71hBpaRiugz9BXBUL/C1gc2AWJX5rJqo4irpr8bfAFuPrsD7A4rJ7f1uv0FTc0puvfHfQOr932DYaoJn3n/1+5zDlmcHO2xrFIiUdTv74ApRQ="
+  }
+}
