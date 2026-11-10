@@ -1,0 +1,115 @@
+import { test, expect } from "@playwright/test";
+const password = "clave-maestra-ficticia-de-prueba";
+test("crear perfil, cerrar y reabrir muestra saludo y pide solo clave; cache no autentica", async ({ page, context }) => {
+  await page.goto("/");
+  await page.locator("#masterPassword").fill(password);
+  await page.locator("#confirmPassword").fill(password);
+  await page.locator("#authSubmit").click();
+  await expect(page.locator("#authError")).toContainText("2 a 40");
+  await page.locator("#authUsername").fill("Josua");
+  await page.locator("#authSubmit").click();
+  await expect(page.locator("#vaultGreeting")).toHaveText("Hola, Josua");
+  const saved = await page.evaluate(() => localStorage.getItem("clavelocal.vault.v1"));
+  expect(saved).not.toContain("Josua");
+  expect(saved).not.toContain(password);
+  await page.close();
+  const reopened = await context.newPage();
+  await reopened.goto("/");
+  await expect(reopened.locator("#authTitle")).toHaveText("Hola, Josua");
+  await expect(reopened.locator("#authUsernameGroup")).toBeHidden();
+  await expect(reopened.locator("#confirmGroup")).toBeHidden();
+  await expect(reopened.locator("#masterPassword")).toHaveValue("");
+  await expect(reopened.locator("#vaultView")).not.toBeVisible();
+  await reopened.screenshot({ path: "work/welcome-profile.png", fullPage: true });
+  await reopened.evaluate(() => localStorage.setItem("clavelocal.profile.v1", JSON.stringify({ version: 1, username: "Otro nombre" })));
+  await reopened.reload();
+  await reopened.locator("#masterPassword").fill("incorrecta-pero-larga");
+  await reopened.locator("#authSubmit").click();
+  await expect(reopened.locator("#authError")).not.toBeEmpty();
+  await expect(reopened.locator("#vaultView")).not.toBeVisible();
+  expect(await reopened.evaluate(() => localStorage.getItem("clavelocal.vault.v1"))).toBe(saved);
+  await reopened.locator("#masterPassword").fill(password);
+  await reopened.locator("#authSubmit").click();
+  await expect(reopened.locator("#vaultGreeting")).toHaveText("Hola, Josua");
+  expect(await reopened.evaluate(() => JSON.parse(localStorage.getItem("clavelocal.profile.v1")).username)).toBe("Josua");
+});
+test("bóveda antigua se personaliza después de autenticar sin perder entradas; renombrar y restaurar", async ({ page }) => {
+  await page.goto("/");
+  await page.evaluate(async (password) => {
+    const { randomBytes, deriveKey, encryptVault } = await import("/vault.mjs");
+    const salt = randomBytes(16);
+    const vault = { version: 1, entries: [{ id: "legacy-1", site: "Sitio anterior", username: "demo@example.invalid", password: "ficticia", notes: "", category: "Personal", favorite: false, updatedAt: "2026-11-09T00:00:00Z" }] };
+    localStorage.setItem("clavelocal.vault.v1", JSON.stringify(await encryptVault(await deriveKey(password, salt), vault, salt)));
+  }, password);
+  await page.reload();
+  await expect(page.locator("#authUsernameGroup")).toBeHidden();
+  await page.locator("#masterPassword").fill(password);
+  await page.locator("#authSubmit").click();
+  await expect(page.locator("#profileDialog")).toBeVisible();
+  await page.locator("#profileUsername").fill("Mi usuario");
+  await page.locator("#saveProfile").click();
+  await expect(page.locator("#profileDialog")).not.toBeVisible();
+  await expect(page.locator("#entryList")).toContainText("Sitio anterior");
+  const backup = await page.evaluate(() => localStorage.getItem("clavelocal.vault.v1"));
+  await page.locator("#profileButton").click();
+  await page.locator("#profileUsername").fill("Nuevo nombre");
+  await page.locator("#saveProfile").click();
+  await expect(page.locator("#vaultGreeting")).toHaveText("Hola, Nuevo nombre");
+  await page.locator("#lockButton").click();
+  await page.locator("#importFile").setInputFiles({ name: "copia.json", mimeType: "application/json", buffer: Buffer.from(backup) });
+  await page.locator("#importPassword").fill(password);
+  page.once("dialog", (dialog) => dialog.accept());
+  await page.locator("#importForm button[type=submit]").click();
+  await expect(page.locator("#authTitle")).toHaveText("Hola, Mi usuario");
+});
+test("un guardado que termina después de bloquear no repuebla la sesión ni el saludo oculto", async ({ page }) => {
+  await page.goto("/");
+  await page.locator("#authUsername").fill("Perfil inicial");
+  await page.locator("#masterPassword").fill(password);
+  await page.locator("#confirmPassword").fill(password);
+  await page.locator("#authSubmit").click();
+  await expect(page.locator("#vaultView")).toBeVisible();
+  await page.evaluate(() => {
+    const original = navigator.locks.request.bind(navigator.locks);
+    navigator.locks.request = async (...args) => {
+      const result = await original(...args);
+      await new Promise((resolve) => { window.finishProfileSave = resolve; });
+      return result;
+    };
+  });
+  await page.locator("#profileButton").click();
+  await page.locator("#profileUsername").fill("Perfil actualizado");
+  await page.locator("#saveProfile").click();
+  await page.waitForFunction(() => typeof window.finishProfileSave === "function");
+  await page.locator("#lockButton").evaluate((button) => button.click());
+  await page.evaluate(() => window.finishProfileSave());
+  await expect(page.locator("#profileError")).toContainText("se bloqueó");
+  await expect(page.locator("#vaultGreeting")).toHaveText("TU ESPACIO PRIVADO");
+  await expect(page.locator("#vaultView")).not.toBeVisible();
+});
+test("ocultar la app durante el inicio cancela el desbloqueo pendiente", async ({ page }) => {
+  await page.goto("/");
+  await page.evaluate(() => {
+    const original = crypto.subtle.deriveKey.bind(crypto.subtle);
+    crypto.subtle.deriveKey = async (...args) => {
+      const key = await original(...args);
+      await new Promise((resolve) => { window.finishAuth = resolve; });
+      return key;
+    };
+  });
+  await page.locator("#authUsername").fill("Perfil de prueba");
+  await page.locator("#masterPassword").fill(password);
+  await page.locator("#confirmPassword").fill(password);
+  await page.locator("#authSubmit").click();
+  await page.waitForFunction(() => typeof window.finishAuth === "function");
+  await page.evaluate(() => {
+    Object.defineProperty(document, "hidden", { value: true, configurable: true });
+    document.dispatchEvent(new Event("visibilitychange"));
+    Object.defineProperty(document, "hidden", { value: false, configurable: true });
+    window.finishAuth();
+  });
+  await expect(page.locator("#authError")).not.toBeEmpty();
+  await expect(page.locator("#vaultView")).not.toBeVisible();
+  expect(await page.evaluate(() => localStorage.getItem("clavelocal.vault.v1"))).toBeNull();
+  await expect(page.locator("#masterPassword")).toHaveValue("");
+});

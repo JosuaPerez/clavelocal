@@ -1,0 +1,11 @@
+{
+  "version": "0.3.2",
+  "notes": "Listas de 10 contraseñas por página, Anterior/Siguiente en cada categoría y búsqueda sobre todos sus resultados. Acceso más limpio con demo discreta centrada; restauración y copia anterior disponibles en Ayuda. Exporta una copia cifrada antes de actualizar.",
+  "pub_date": "2026-11-09T23:10:41.351Z",
+  "platforms": {
+    "windows-x86_64": {
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSZDJFbFpQYU9aSDUxQklwQ0c5bzBkYVErMlg0YWlIcEQxVEp2UFVXU1JHbnZ0dGk4T0lQU1ZHTDJKekJCUm51WkNISE0zR0cwTnZLVUFFOHU4dGlBdng1QTdPOU54bndRPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzk0MjY1ODM4CWZpbGU6Q2xhdmVMb2NhbF8wLjMuMl94NjQtc2V0dXAuZXhlCXZlcnNpb246MC4zLjIKelFsOFdnU0RRNSt4bXNUV0hoUUJYMmZsNGg1N3JSZVFtNERyTTk1dDhtMU9JOUpaM3ZiZW1xK0Y3a0hZQjBGRUpxOE1EWm5JeVFKV1BTVTlKR2t2QXc9PQo=",
+      "url": "https://github.com/JosuaPerez/clavelocal/releases/download/v0.3.2/ClaveLocal_0.3.2_x64-setup.exe"
+    }
+  }
+}

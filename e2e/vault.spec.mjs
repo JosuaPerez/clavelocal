@@ -3,6 +3,7 @@ import { test, expect } from "@playwright/test";
 const secret = "ficticia-solo-pruebas-123!";
 async function create(page) {
   await page.goto("/");
+  await page.locator("#authUsername").fill("Perfil de prueba");
   await page.locator("#masterPassword").fill(secret);
   await page.locator("#confirmPassword").fill(secret);
   await page.locator("#authSubmit").click();
