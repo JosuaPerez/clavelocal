@@ -2,6 +2,7 @@ import { test, expect } from "@playwright/test";
 const password = "solo-pruebas-clave-ficticia-123!";
 async function create(page) {
   await page.goto("/");
+  await page.locator("#authUsername").fill("Perfil de prueba");
   await page.locator("#masterPassword").fill(password);
   await page.locator("#confirmPassword").fill(password);
   await page.locator("#authSubmit").click();
@@ -35,6 +36,7 @@ test("CSV solo local, vista previa sin contraseñas, cancelación, cifrado y dup
   await expect(page.locator("#csvMapping")).toBeEmpty();
   await page.locator("#masterPassword").fill(password);
   await page.locator("#authSubmit").click();
+  await expect(page.locator("#vaultGreeting")).toHaveText("Hola, Perfil de prueba");
   await page.getByRole("button", { name: "Editar", exact: true }).click();
   await expect(page.locator("#entryPassword")).toHaveValue('prueba,"123"');
 });
@@ -45,4 +47,18 @@ test("bloquear cancela CSV sin guardar ni conservar su vista previa", async ({ p
   await expect(page.locator("#csvDialog")).not.toBeVisible();
   await expect(page.locator("#csvMapping")).toBeEmpty();
   await expect(page.locator("#csvSummary")).toBeEmpty();
+});
+
+test("un evento de cierre tardío no vacía una importación CSV reabierta", async ({ page }) => {
+  await create(page);
+  await load(page);
+  await page.locator("#cancelCsv").click();
+  await load(page);
+  // close is queued by the browser; a previous close can arrive after reopening.
+  await page.evaluate(() => document.querySelector("#csvDialog").dispatchEvent(new Event("close")));
+  await expect(page.locator("#csvSummary")).toContainText("1 nuevos");
+  await page.locator("#csvAcknowledge").check();
+  await page.locator("#confirmCsv").click();
+  await expect(page.locator("#csvDialog")).not.toBeVisible();
+  await expect(page.locator("#entryList")).toContainText("Correo, ejemplo");
 });

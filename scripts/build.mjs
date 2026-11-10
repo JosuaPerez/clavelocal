@@ -1,6 +1,6 @@
 import { mkdir, copyFile, readFile, writeFile } from "node:fs/promises";
 
-const files = ["index.html", "styles.css", "app.js", "vault.mjs", "csv.mjs"];
+const files = ["index.html", "styles.css", "app.js", "vault.mjs", "csv.mjs", "profile.mjs", "session.mjs", "clipboard.mjs", "settings.mjs"];
 for (const directory of ["dist", "site/demo"]) {
   await mkdir(directory, { recursive: true });
   for (const file of files) await copyFile(file, `${directory}/${file}`);
