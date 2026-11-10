@@ -31,6 +31,14 @@ No protege frente a software que lea el contenido durante el plazo, historial pr
 
 No se añaden capacidades genéricas: los comandos propios registrados ya están disponibles para el contenido local por defecto en [Tauri 2](https://v2.tauri.app/security/capabilities/). La nueva superficie se limita a copiar texto que ese contenido ya posee; no ofrece lectura, rutas, URLs de destino ni ejecución. No se configura acceso remoto.
 
+## Política de bloqueo
+
+`settings` es opcional y está dentro de la bóveda cifrada, con dos valores validados estrictamente: `idleMinutes` (1/5/15/30) y `hiddenSeconds` (0/15/60). Sin ese campo se aplican 5 minutos e inmediato; no se escribe una migración por su ausencia y no cambia el formato v1. La interfaz ofrece ajustes solo después de autenticar y los guarda con el mismo control de sesión, Web Lock y copia anterior que las entradas.
+
+La gracia permite cambiar de app y pegar antes de volver, pero deja los secretos descifrados durante ese plazo. La actividad oculta no reinicia la inactividad, ni ocultar repetidamente extiende la gracia; volver cancela solo el plazo de ocultación. El primer plazo que vence bloquea. El bloqueo manual, `pagehide` y el cierre no usan gracia. Ocultar durante una autenticación pendiente la cancela inmediatamente. Si un guardado de ajustes termina con la ventana oculta se bloquea de inmediato, sin iniciar otra gracia. Los temporizadores web pueden demorarse si el motor o el equipo se suspende; no hay integración con el bloqueo/suspensión de Windows ni garantía de reloj en tiempo real.
+
+Pruebas con las funciones originales de 0.3.2 congeladas confirman que su validador acepta `settings` y que crear/editar, favoritos, borrar, importar CSV y cambiar perfil lo conservan. Aquella versión ignora los ajustes y conserva su política fija. Esta comprobación usa controles simulados y no certifica un instalador antiguo ni futuras versiones. No se recomienda volver a una versión anterior; el actualizador no ofrece downgrades.
+
 El instalador no tiene todavía firma de identidad de Windows. Los hashes de release detectan cambios respecto de esa publicación, pero no protegen frente al compromiso de la cuenta que publica. El actualizador de 0.3 usa el plugin oficial de Tauri para verificar firma y versión antes de ejecutar el instalador; se activa solo por una petición del usuario, con endpoint y clave pública fijos. La clave privada se custodia localmente, fuera de Git y de CI. Authenticode sigue pendiente: la firma del actualizador no sustituye la identidad del editor de Windows. Véase [UPDATES.md](UPDATES.md).
 
 ## Perfil local
