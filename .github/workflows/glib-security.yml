@@ -1,0 +1,34 @@
+name: GLib security regression
+on:
+  push:
+    branches: [main]
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  patched-glib:
+    name: glib-security
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+      - name: Verify upstream bytes and exact backport
+        run: node --test test/vendor.test.mjs
+      - name: Install GLib build headers
+        run: sudo apt-get update && sudo apt-get install --no-install-recommends -y libglib2.0-dev
+      - run: rustup default stable
+      - name: Exercise patched iterator with release optimizations on Linux
+        run: cargo test --release --locked --manifest-path src-tauri/Cargo.toml -p clavelocal-glib-regression
+      - name: Verify Windows does not select GLib
+        shell: bash
+        run: |
+          cargo tree --locked --manifest-path src-tauri/Cargo.toml -p clavelocal --target x86_64-pc-windows-msvc --prefix none > windows-tree.txt
+          if grep -Eq '^glib v' windows-tree.txt; then
+            echo 'Unexpected GLib dependency in the Windows runtime graph'
+            exit 1
+          fi
