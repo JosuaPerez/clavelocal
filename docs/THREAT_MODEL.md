@@ -31,6 +31,8 @@ La rotación mantiene en `.previous` el envoltorio anterior. Esa copia y las exp
 
 El escritorio empaqueta recursos locales con Tauri, sin APIs genéricas de shell, archivos ni HTTP expuestas al contenido web. La bóveda usa almacenamiento cifrado del WebView del usuario. La CSP no autoriza scripts remotos; en escritorio admite únicamente el IPC nativo requerido por dos comandos de actualización y `copy_secret`. La web pública es una demo separada, sin formularios habilitados para secretos reales; no distribuye la app real por HTTP.
 
+La bóveda y su copia anterior comparten el perfil del WebView y su cuota. El [ADR de almacenamiento nativo](adr/0001-almacenamiento-nativo.md) compara opciones para separar esos datos y documenta las pruebas pendientes antes de decidir.
+
 ## Modo navegador local
 
 El navegador asigna `localStorage` al origen fijo `http://127.0.0.1:4173`. Si otro proceso ocupa ese puerto antes que ClaveLocal, puede servir código con acceso al mismo almacenamiento cifrado y pedir la clave maestra. ClaveLocal no puede demostrar su identidad al navegador. Si el puerto está ocupado, el lanzador avisa y falla antes de abrirlo. Las cabeceras COOP y CORP aíslan las respuestas frente a otros orígenes, pero no autentican al proceso que sirve ese puerto.
