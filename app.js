@@ -648,7 +648,10 @@ function bindEvents() {
   setupUpdater();
   $("#csvImportButton").addEventListener("click", () => { elements.importFile.accept = ".csv,text/csv"; elements.importFile.click(); });
   $("#csvForm").addEventListener("submit", confirmCsv);
-  $("#csvDialog").addEventListener("close", clearCsv);
+  $("#csvDialog").addEventListener("close", () => {
+    // A queued close from a previous import must not erase a newly opened one.
+    if (!$("#csvDialog").open) clearCsv();
+  });
   $("#cancelCsv").addEventListener("click", () => { $("#csvDialog").close(); clearCsv(); });
   $("#previousBackupButton").addEventListener("click", () => {
     try {
