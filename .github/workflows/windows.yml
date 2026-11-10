@@ -24,6 +24,8 @@ jobs:
       - run: rustup default stable
       - run: npm run desktop:build
       - run: cargo test --release --locked --manifest-path src-tauri/Cargo.toml
+      - name: Native clipboard smoke test on isolated runner
+        run: cargo test --release --locked --manifest-path src-tauri/Cargo.toml --bin clavelocal clipboard::platform::native_tests::isolated_windows_clipboard_roundtrip_and_cleanup -- --ignored --exact
       - run: cargo build --release --locked --manifest-path src-tauri/Cargo.toml --bin verify-update
       - name: Hash del instalador
         shell: pwsh

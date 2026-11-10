@@ -163,6 +163,84 @@ mod platform {
             Ok(())
         }
     }
+
+    #[cfg(test)]
+    mod native_tests {
+        use super::*;
+        use crate::clipboard::SecretClipboard;
+        use std::time::{Duration, Instant};
+        use windows_sys::Win32::UI::WindowsAndMessaging::{CreateWindowExW, DestroyWindow};
+
+        struct TestWindow(HWND);
+        impl Drop for TestWindow {
+            fn drop(&mut self) {
+                if let Ok(_open) = Open::acquire(self.0) { unsafe { EmptyClipboard(); } }
+                unsafe { DestroyWindow(self.0); }
+            }
+        }
+        fn text() -> Option<String> {
+            let _open = Open::acquire(ptr::null_mut()).expect("open isolated clipboard");
+            if unsafe { IsClipboardFormatAvailable(UNICODE_TEXT) } == 0 { return None; }
+            let handle = unsafe { GetClipboardData(UNICODE_TEXT) };
+            assert!(!handle.is_null());
+            let size = unsafe { GlobalSize(handle) };
+            assert!(size >= 2 && size <= 16384 && size % 2 == 0);
+            let data = unsafe { GlobalLock(handle) }.cast::<u8>();
+            assert!(!data.is_null());
+            let bytes = unsafe { std::slice::from_raw_parts(data, size) };
+            let units: Vec<u16> = bytes.chunks_exact(2).map(|b| u16::from_le_bytes([b[0], b[1]])).collect();
+            let end = units.iter().position(|&u| u == 0).expect("terminated text");
+            let result = String::from_utf16(&units[..end]).expect("valid UTF-16");
+            unsafe { GlobalUnlock(handle); }
+            Some(result)
+        }
+
+        // This changes the system clipboard. It is explicitly opted into only on
+        // the ephemeral Windows CI runner, never on the maintainer's desktop.
+        #[test]
+        #[ignore = "run explicitly on the isolated Windows CI runner"]
+        fn isolated_windows_clipboard_roundtrip_and_cleanup() {
+            assert_eq!(std::env::var("GITHUB_ACTIONS").as_deref(), Ok("true"));
+            assert_eq!(std::env::var("RUNNER_OS").as_deref(), Ok("Windows"));
+            let class: Vec<u16> = "STATIC".encode_utf16().chain(Some(0)).collect();
+            let handle = unsafe {
+                CreateWindowExW(0, class.as_ptr(), class.as_ptr(), 0, 0, 0, 0, 0,
+                    ptr::null_mut(), ptr::null_mut(), ptr::null_mut(), ptr::null())
+            };
+            assert!(!handle.is_null(), "hidden test window creation");
+            let window = TestWindow(handle);
+            let clipboard = SecretClipboard::default();
+            clipboard.copy("solo-prueba-nativa-🗝️", window.0 as usize).unwrap();
+            assert_eq!(text().as_deref(), Some("solo-prueba-nativa-🗝️"));
+            {
+                let _open = Open::acquire(ptr::null_mut()).unwrap();
+                for format in ["ExcludeClipboardContentFromMonitorProcessing", "CanIncludeInClipboardHistory", "CanUploadToCloudClipboard"] {
+                    let name: Vec<u16> = format.encode_utf16().chain(Some(0)).collect();
+                    let id = unsafe { RegisterClipboardFormatW(name.as_ptr()) };
+                    let value = unsafe { GetClipboardData(id) };
+                    assert!(!value.is_null(), "missing exclusion format: {format}");
+                    assert!(unsafe { GlobalSize(value) } >= 4);
+                    let data = unsafe { GlobalLock(value) }.cast::<u8>();
+                    assert!(!data.is_null());
+                    assert_eq!(unsafe { std::slice::from_raw_parts(data, 4) }, &[0, 0, 0, 0]);
+                    unsafe { GlobalUnlock(value); }
+                }
+            }
+            // Same path used by the normal close/exit callbacks.
+            clipboard.wipe_now();
+            assert_eq!(text(), None, "close cleanup clears the copied secret");
+            clipboard.copy("ficticia-original", window.0 as usize).unwrap();
+            copy("otro-texto-del-usuario", window.0 as usize).unwrap();
+            clipboard.wipe_now();
+            assert_eq!(text().as_deref(), Some("otro-texto-del-usuario"));
+            clipboard.copy("ficticia-temporizador", window.0 as usize).unwrap();
+            let deadline = Instant::now() + Duration::from_secs(40);
+            while text().is_some() && Instant::now() < deadline {
+                std::thread::sleep(Duration::from_millis(100));
+            }
+            assert_eq!(text(), None, "native worker clears without a UI callback");
+        }
+    }
 }
 
 #[cfg(not(windows))]

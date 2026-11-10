@@ -1,6 +1,6 @@
 [package]
 name = "clavelocal"
-version = "0.3.2"
+version = "0.4.0"
 description = "Bóveda local de contraseñas"
 edition = "2021"
 license = "MIT"
@@ -32,3 +32,6 @@ sha2 = "=0.10.9"
 
 [target.'cfg(windows)'.dependencies]
 windows-sys = { version = "=0.61.2", features = ["Win32_Foundation", "Win32_System_DataExchange", "Win32_System_Memory"] }
+
+[target.'cfg(windows)'.dev-dependencies]
+windows-sys = { version = "=0.61.2", features = ["Win32_UI_WindowsAndMessaging"] }
