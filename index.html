@@ -95,6 +95,7 @@
           <div class="sidebar-footer">
             <button id="profileButton" type="button">Mi perfil</button>
             <button id="settingsButton" type="button">Ajustes de bloqueo</button>
+            <button id="changeKeyButton" type="button" disabled>Cambiar clave maestra</button>
             <button id="csvImportButton" type="button">Importar contraseñas CSV</button>
             <button id="exportButton" type="button">Exportar copia cifrada</button>
             <button id="importButton" type="button">Restaurar copia JSON</button>
@@ -105,6 +106,15 @@
 
         <div class="vault-content">
           <p id="vaultNotice" role="status" hidden></p>
+          <section class="rekey-recovery" id="rekeyRecovery" aria-labelledby="rekeyRecoveryTitle" hidden>
+            <h3 id="rekeyRecoveryTitle" tabindex="-1">Clave maestra cambiada</h3>
+            <p>La copia anterior local y los archivos exportados siguen abriéndose con la clave anterior. Si esa clave quedó expuesta, quien la conozca puede abrir esas copias.</p>
+            <div class="recovery-actions">
+              <button class="secondary-button" id="rekeyExport" type="button">Descargar copia cifrada nueva</button>
+              <button class="secondary-button" id="rekeyDeletePrevious" type="button" disabled>Eliminar la copia anterior local</button>
+            </div>
+            <p id="rekeyRecoveryStatus" role="status"></p>
+          </section>
           <div class="vault-header">
             <div>
               <p class="eyebrow" id="vaultGreeting">TU ESPACIO PRIVADO</p>
@@ -163,6 +173,30 @@
         <p class="microcopy">La espera facilita pegar una contraseña en otra app. Durante ese plazo la bóveda sigue abierta en memoria. El bloqueo por inactividad continúa contando. Bloquear manualmente y cerrar siempre bloquean de inmediato.</p>
         <p class="form-error" id="settingsError" role="alert"></p>
         <div class="dialog-actions"><button id="cancelSettings" class="secondary-button" type="button">Cancelar</button><button id="saveSettings" class="primary-button" type="submit">Guardar ajustes</button></div>
+      </form>
+    </dialog>
+
+    <dialog id="changeKeyDialog" class="app-dialog" aria-labelledby="changeKeyTitle">
+      <form id="changeKeyForm" novalidate>
+        <h2 id="changeKeyTitle">Cambiar clave maestra</h2>
+        <p>La copia anterior local y los archivos que ya exportaste seguirán abriéndose con la clave anterior. Quien conozca esa clave podrá abrir esas copias.</p>
+        <fieldset class="rekey-fields" id="changeKeyFields">
+          <label for="currentKey">Clave actual</label>
+          <input id="currentKey" type="password" autocomplete="current-password" required>
+          <label for="nextKey">Clave nueva</label>
+          <div class="input-wrap">
+            <input id="nextKey" type="password" autocomplete="new-password" minlength="12" aria-describedby="changeKeyAssessment" required>
+            <button class="reveal-button" data-reveal="nextKey" type="button" aria-label="Mostrar u ocultar clave nueva"><svg viewBox="0 0 24 24"><path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Zm9.5 3a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/></svg></button>
+          </div>
+          <div class="password-policy">
+            <p id="changeKeyAssessment" aria-live="polite"></p>
+            <p>Una frase de cuatro o más palabras al azar suele ser más fácil de recordar que símbolos sueltos. La comprobación solo detecta patrones obvios.</p>
+          </div>
+          <label for="confirmKey">Confirma la clave nueva</label>
+          <input id="confirmKey" type="password" autocomplete="new-password" required>
+        </fieldset>
+        <p class="form-error" id="changeKeyError" role="alert"></p>
+        <div class="dialog-actions"><button id="cancelChangeKey" class="secondary-button" type="button">Cancelar</button><button id="saveChangeKey" class="primary-button" type="submit" disabled>Cambiar clave maestra</button></div>
       </form>
     </dialog>
 

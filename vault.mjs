@@ -4,6 +4,7 @@ import { validateSettings } from "./settings.mjs";
 export const ITERATIONS = 600000;
 export const MAX_FILE_BYTES = 4 * 1024 * 1024;
 export const STORAGE_KEY = "clavelocal.vault.v1";
+const BACKUP_KEY = `${STORAGE_KEY}.previous`;
 const encoder = new TextEncoder();
 const decoder = new TextDecoder("utf-8", { fatal: true });
 export const randomBytes = (length) => crypto.getRandomValues(new Uint8Array(length));
@@ -73,19 +74,32 @@ export class VaultStore {
     this.expected = raw;
     return raw === null ? null : validateEnvelope(JSON.parse(raw));
   }
+  currentEnvelope() {
+    if (this.expected == null) throw new Error("No hay una bóveda abierta para cambiar la clave.");
+    return validateEnvelope(JSON.parse(this.expected));
+  }
+  matchesCurrent() {
+    return this.expected !== undefined && this.storage.getItem(STORAGE_KEY) === this.expected;
+  }
+  removePreviousBackup(expectedBackup) {
+    if (typeof expectedBackup !== "string" || !this.matchesCurrent() || this.storage.getItem(BACKUP_KEY) !== expectedBackup) {
+      throw new Error("La copia anterior cambió. Se conservó la copia que está guardada ahora.");
+    }
+    this.storage.removeItem(BACKUP_KEY);
+  }
   commit(envelope) {
     validateEnvelope(envelope);
-    if (this.expected === undefined || this.storage.getItem(STORAGE_KEY) !== this.expected) throw new Error("La bóveda cambió en otra ventana. Bloquea y vuelve a abrir antes de guardar.");
+    if (!this.matchesCurrent()) throw new Error("La bóveda cambió en otra ventana. Bloquea y vuelve a abrir antes de guardar.");
     const raw = JSON.stringify(envelope);
-    const backupKey = `${STORAGE_KEY}.previous`;
-    const previousBackup = this.storage.getItem(backupKey);
+    const previousBackup = this.storage.getItem(BACKUP_KEY);
+    const prior = this.expected;
     let rotated = false;
     // localStorage writes are individually atomic, but the pair is not a transaction.
     if (this.expected !== null) {
       let validPrevious = false;
       try { validateEnvelope(JSON.parse(this.expected)); validPrevious = true; } catch { /* Preserve an older valid backup when the primary file is malformed. */ }
       if (validPrevious) {
-        try { this.storage.setItem(backupKey, this.expected); rotated = true; }
+        try { this.storage.setItem(BACKUP_KEY, this.expected); rotated = true; }
         catch { throw new StorageWriteError(); }
       }
     }
@@ -93,12 +107,13 @@ export class VaultStore {
     catch {
       if (rotated) {
         try {
-          if (previousBackup === null) this.storage.removeItem(backupKey);
-          else this.storage.setItem(backupKey, previousBackup);
+          if (previousBackup === null) this.storage.removeItem(BACKUP_KEY);
+          else this.storage.setItem(BACKUP_KEY, previousBackup);
         } catch { throw new StorageWriteError(true); }
       }
       throw new StorageWriteError();
     }
     this.expected = raw;
+    return rotated ? prior : null;
   }
 }
