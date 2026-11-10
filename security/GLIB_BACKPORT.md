@@ -44,6 +44,10 @@ una versión oficial compatible corregida. No ignorar todos los avisos de GLib.
 El workflow `glib-security` ejecuta en Linux, en modo release, un paquete mínimo
 del mismo workspace y lockfile que depende de la misma copia de GLib:
 
+El paquete de pruebas declara directamente la ruta a la copia corregida. No
+declara una dependencia del registro sin parche: así se evita que los analizadores
+que leen solo ese manifest la interpreten como una segunda dependencia vulnerable.
+
 ```text
 cargo test --release --locked --manifest-path src-tauri/Cargo.toml -p clavelocal-glib-regression
 ```
