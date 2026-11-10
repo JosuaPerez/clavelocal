@@ -21,6 +21,12 @@ Entradas, notas y clave maestra frente a la lectura del archivo de bóveda cuand
 
 El escritorio empaqueta recursos locales con Tauri, sin APIs genéricas de shell, archivos ni HTTP expuestas al contenido web. La bóveda usa almacenamiento cifrado del WebView del usuario. La CSP no autoriza scripts remotos; en escritorio admite únicamente el IPC nativo requerido por dos comandos de actualización y `copy_secret`. La web pública es una demo separada, sin formularios habilitados para secretos reales; no distribuye la app real por HTTP.
 
+## Modo navegador local
+
+El navegador asigna `localStorage` al origen fijo `http://127.0.0.1:4173`. Si otro proceso ocupa ese puerto antes que ClaveLocal, puede servir código con acceso al mismo almacenamiento cifrado y pedir la clave maestra. ClaveLocal no puede demostrar su identidad al navegador. Si el puerto está ocupado, el lanzador avisa y falla antes de abrirlo. Las cabeceras COOP y CORP aíslan las respuestas frente a otros orígenes, pero no autentican al proceso que sirve ese puerto.
+
+Un puerto aleatorio crearía otro origen con otro `localStorage`: la bóveda existente parecería perdida. El mismo límite se aplica al cambiar `CLAVELOCAL_PORT`. Usa la app de escritorio como modo principal en Windows.
+
 ## Portapapeles
 
 En navegador se intenta limpiar a los 30 s y al volver a mostrar la página, solo si el digest del texto coincide. El temporizador conserva SHA-256, no retiene deliberadamente el texto original. Esto no garantiza borrado físico de strings del motor JavaScript. Los permisos, suspensión de temporizadores y cierre de la página pueden impedir la limpieza; se avisa cuando falla. La comparación y escritura de la API web no son atómicas respecto de otras aplicaciones: existe una ventana de carrera. Nunca se borra a ciegas ante un error de lectura.

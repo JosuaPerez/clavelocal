@@ -9,3 +9,7 @@ if errorlevel 1 (
   exit /b 1
 )
 node server.mjs
+if errorlevel 1 (
+  pause
+  exit /b 1
+)

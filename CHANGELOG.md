@@ -4,6 +4,7 @@ Todos los cambios importantes se documentarán aquí siguiendo un esquema inspir
 
 ## [Sin publicar]
 
+- El servidor local avisa si su puerto está ocupado y falla antes de abrir el navegador; añade cabeceras COOP y CORP.
 - Pruebas de consistencia entre los módulos de la app, el servidor y el empaquetado; escaneo ampliado a módulos transitivos.
 
 ## [0.4.0] - 2026-11-10

@@ -21,6 +21,8 @@ export const server = createServer(async (request, response) => {
   response.setHeader("Referrer-Policy", "no-referrer");
   response.setHeader("Permissions-Policy", "camera=(), microphone=(), geolocation=(), payment=(), usb=()");
   response.setHeader("Cache-Control", "no-store");
+  response.setHeader("Cross-Origin-Opener-Policy", "same-origin");
+  response.setHeader("Cross-Origin-Resource-Policy", "same-origin");
 
   if (!allowed.has(pathname)) {
     response.writeHead(404).end("No encontrado");
@@ -40,14 +42,23 @@ export const server = createServer(async (request, response) => {
 });
 
 if (process.env.CLAVELOCAL_NO_AUTOSTART !== "1") {
-  server.listen(port, "127.0.0.1", () => {
-    const address = `http://127.0.0.1:${port}`;
-    console.log(`ClaveLocal está abierto en ${address}`);
-    if (process.env.CLAVELOCAL_NO_OPEN === "1") return;
-    const browser = process.platform === "win32" ? ["cmd", ["/c", "start", "", address]] : process.platform === "darwin" ? ["open", [address]] : ["xdg-open", [address]];
-    const child = spawn(browser[0], browser[1], { detached: true, stdio: "ignore", windowsHide: true });
-    child.unref();
-  });
+  function reportServerError(error) {
+    console.error(error.code === "EADDRINUSE"
+      ? `El puerto ${port} ya está en uso. Otro programa podría estar imitando a ClaveLocal: no abras esa dirección con tu bóveda. Cierra el programa que ocupa el puerto o elige otro con CLAVELOCAL_PORT. Un puerto distinto usa otro almacenamiento y no verá tu bóveda actual.`
+      : "No se pudo iniciar el servidor local de ClaveLocal. Revisa el puerto y los permisos, y vuelve a intentarlo.");
+    process.exitCode = 1;
+  }
+  server.on("error", reportServerError);
+  try {
+    server.listen(port, "127.0.0.1", () => {
+      const address = `http://127.0.0.1:${port}`;
+      console.log(`ClaveLocal está abierto en ${address}`);
+      if (process.env.CLAVELOCAL_NO_OPEN === "1") return;
+      const browser = process.platform === "win32" ? ["cmd", ["/c", "start", "", address]] : process.platform === "darwin" ? ["open", [address]] : ["xdg-open", [address]];
+      const child = spawn(browser[0], browser[1], { detached: true, stdio: "ignore", windowsHide: true });
+      child.unref();
+    });
+  } catch (error) { reportServerError(error); }
 
   process.on("SIGINT", () => server.close(() => process.exit(0)));
 }
