@@ -2,7 +2,11 @@
 
 import { STORAGE_KEY, MAX_FILE_BYTES, VaultStore, randomBytes, deriveKey, encryptVault, openVault, validateEnvelope } from "./vault.mjs";
 import { parseCsv, planCsvImport } from "./csv.mjs";
-const INACTIVITY_MS = 5 * 60 * 1000;
+import { PROFILE_KEY, normalizeUsername, readCachedProfile, cacheProfile } from "./profile.mjs";
+import { openSession } from "./session.mjs";
+import { createClipboardCleaner } from "./clipboard.mjs";
+import { createLockPolicy, DEFAULT_SETTINGS, validateSettings } from "./settings.mjs";
+const PAGE_SIZE = 10;
 const store = new VaultStore(localStorage);
 let pendingImport = null;
 let busy = false;
@@ -15,14 +19,15 @@ const state = {
   key: null,
   vault: { version: 1, entries: [] },
   filter: "all",
-  inactivityTimer: null,
-  clipboardTimer: null,
+  page: 1,
   salt: null,
+  iterations: null,
   demo: false,
 };
 
 const $ = (selector) => document.querySelector(selector);
 const $$ = (selector) => [...document.querySelectorAll(selector)];
+const lockPolicy = createLockPolicy({ lock: (message) => lockVault(message) });
 
 const elements = {
   welcomeView: $("#welcomeView"), vaultView: $("#vaultView"), lockButton: $("#lockButton"),
@@ -54,11 +59,12 @@ async function persistVault(next) {
   busy = true;
   const generation = session;
   try {
-    const encrypted = await encryptVault(state.key, next, state.salt);
+    const encrypted = await encryptVault(state.key, next, state.salt, state.iterations);
     await withStorageLock(() => {
       if (generation !== session || !state.key) throw new Error("La bóveda se bloqueó antes de guardar. Vuelve a abrirla.");
       store.commit(encrypted);
     });
+    if (generation !== session || !state.key) throw new Error("La bóveda se bloqueó durante el guardado. Vuelve a abrirla para comprobar los cambios.");
     state.vault = next;
   } finally { busy = false; }
 }
@@ -67,20 +73,26 @@ function configureAuth() {
   let exists;
   try { exists = Boolean(getStoredVault()); }
   catch {
-    elements.authError.textContent = "No se puede leer la bóveda. Conservamos los datos: restaura una copia válida o revisa el almacenamiento del navegador.";
+    elements.authError.textContent = "No se puede leer la bóveda. Conservamos los datos: abre Ayuda para restaurar una copia válida o revisa el almacenamiento del navegador.";
     elements.authSubmit.disabled = true;
     return;
   }
   elements.authSubmit.disabled = false;
+  const profile = exists ? readCachedProfile(localStorage) : null;
+  $("#authUsernameGroup").hidden = exists;
+  $("#authUsername").required = !exists;
+  $("#profileAvatar").hidden = !profile;
+  $("#profileAvatar").textContent = profile ? Array.from(profile.username).slice(0, 2).join("").toLocaleUpperCase("es") : "";
+  $("#authLockIcon").hidden = Boolean(profile);
   elements.confirmGroup.classList.toggle("hidden", exists);
   elements.confirmPassword.required = !exists;
   elements.masterPassword.autocomplete = exists ? "current-password" : "new-password";
   elements.authKicker.textContent = exists ? "BIENVENIDO DE NUEVO" : "PRIMER ACCESO";
-  elements.authTitle.textContent = exists ? "Abre tu bóveda" : "Crea tu bóveda";
+  elements.authTitle.textContent = exists ? (profile ? `Hola, ${profile.username}` : "Abre tu bóveda") : "Crea tu perfil";
   elements.authDescription.textContent = exists
     ? "Introduce tu clave maestra para descifrar tus contraseñas."
-    : "Elige una clave maestra. Será la única forma de abrir tus contraseñas.";
-  elements.authSubmit.firstChild.textContent = exists ? "Abrir bóveda " : "Crear bóveda ";
+    : "Elige tu usuario y una clave maestra para crear tu bóveda local.";
+  elements.authSubmit.firstChild.textContent = exists ? "Entrar a mi bóveda " : "Crear perfil y bóveda ";
 }
 
 async function handleAuth(event) {
@@ -93,33 +105,41 @@ async function handleAuth(event) {
     elements.authError.textContent = "Usa al menos 12 caracteres para tu clave maestra.";
     return;
   }
+  if (!$("#authUsernameGroup").hidden) {
+    try { normalizeUsername($("#authUsername").value); }
+    catch (error) { elements.authError.textContent = error.message; return; }
+    if (password !== elements.confirmPassword.value) { elements.authError.textContent = "Las claves no coinciden."; return; }
+  }
   busy = true;
   const generation = ++session;
   elements.authSubmit.disabled = true;
   try {
     await withStorageLock(async () => {
-      const stored = getStoredVault();
-      if (!stored && password !== elements.confirmPassword.value) throw new Error("Las claves no coinciden.");
-      const opened = stored ? await openVault(password, stored) : { vault: { version: 1, entries: [] } };
-      const salt = randomBytes(16);
-      const key = await deriveKey(password, salt);
-      const encrypted = await encryptVault(key, opened.vault, salt);
+      const opened = await openSession(store, password, () => {
+        if (password !== elements.confirmPassword.value) throw new Error("Las claves no coinciden.");
+        return { version: 1, entries: [], profile: { version: 1, username: normalizeUsername($("#authUsername").value) } };
+      }, () => generation === session);
       if (generation !== session) throw new Error("Operación cancelada");
-      // Old KDF parameters are migrated only after successful authentication.
-      store.commit(encrypted);
-      state.key = key;
-      state.salt = salt;
+      state.key = opened.key;
+      state.salt = opened.salt;
+      state.iterations = opened.iterations;
       state.vault = opened.vault;
+      $("#vaultNotice").textContent = opened.warning;
+      $("#vaultNotice").hidden = !opened.warning;
     });
+    if (generation !== session || !state.key) return;
     elements.authForm.reset();
     unlockUi();
-  } catch {
+  } catch (error) {
     state.key = null;
-    elements.authError.textContent = "No se pudo abrir o guardar la bóveda. Revisa la clave, la copia y el espacio disponible. Los datos anteriores se conservan.";
+    state.salt = null;
+    state.iterations = null;
+    elements.authError.textContent = error.name === "StorageWriteError" ? error.message : "No se pudo abrir o guardar la bóveda. Revisa la clave, la copia y el espacio disponible.";
   } finally {
     busy = false;
     elements.authSubmit.disabled = false;
   }
+  if (state.key && !state.vault.profile) showProfileDialog();
 }
 
 function unlockUi() {
@@ -127,20 +147,33 @@ function unlockUi() {
   elements.vaultView.classList.remove("hidden");
   elements.lockButton.classList.remove("hidden");
   state.filter = "all";
+  state.page = 1;
   elements.searchInput.value = "";
+  renderProfile();
   renderEntries();
-  resetInactivityTimer();
+  $("#settingsButton").disabled = state.demo;
+  lockPolicy.start(state.vault.settings || DEFAULT_SETTINGS, document.hidden);
 }
 
 function lockVault(message = "Bóveda bloqueada") {
   session += 1;
   state.key = null;
   state.salt = null;
+  state.iterations = null;
+  $("#vaultNotice").textContent = "";
+  $("#vaultNotice").hidden = true;
   state.vault = { version: 1, entries: [] };
-  clearTimeout(state.inactivityTimer);
-  clearTimeout(state.clipboardTimer);
+  state.page = 1;
+  lockPolicy.stop();
+  $("#settingsDialog").close();
+  $("#settingsForm").reset();
+  $("#settingsError").textContent = "";
   elements.entryForm.reset();
   elements.authForm.reset();
+  $("#profileForm").reset();
+  $("#profileDialog").close();
+  $("#helpDialog").close();
+  $("#vaultGreeting").textContent = "TU ESPACIO PRIVADO";
   $("#importForm").reset();
   pendingImport = null;
   clearCsv();
@@ -149,6 +182,7 @@ function lockVault(message = "Bóveda bloqueada") {
   for (const id of ["masterPassword", "confirmPassword", "entryPassword"]) document.getElementById(id).type = "password";
   elements.generatedPassword.textContent = "";
   elements.entryList.replaceChildren();
+  $$(".entry-pagination").forEach((pagination) => { pagination.hidden = true; pagination.querySelector(".page-summary").textContent = ""; });
   elements.categoryNav.replaceChildren();
   elements.searchInput.value = "";
   elements.allCount.textContent = "0";
@@ -169,8 +203,31 @@ function lockVault(message = "Bóveda bloqueada") {
 
 function resetInactivityTimer() {
   if (!state.key) return;
-  clearTimeout(state.inactivityTimer);
-  state.inactivityTimer = setTimeout(() => lockVault("Bóveda bloqueada por inactividad"), INACTIVITY_MS);
+  lockPolicy.activity();
+}
+
+function showSettings() {
+  if (!state.key || state.demo || busy) return;
+  const settings = state.vault.settings || DEFAULT_SETTINGS;
+  $("#idleMinutes").value = String(settings.idleMinutes);
+  $("#hiddenSeconds").value = String(settings.hiddenSeconds);
+  $("#settingsError").textContent = "";
+  $("#settingsDialog").showModal();
+  $("#idleMinutes").focus();
+}
+
+async function saveSettings(event) {
+  event.preventDefault();
+  if (!state.key || state.demo || busy) return;
+  try {
+    const settings = validateSettings({ idleMinutes: Number($("#idleMinutes").value), hiddenSeconds: Number($("#hiddenSeconds").value) });
+    await persistVault({ ...state.vault, settings });
+    // A late save must not start a new grace period while the window is hidden.
+    if (document.hidden) { lockVault("Ajustes guardados. Bóveda bloqueada al salir de la ventana"); return; }
+    lockPolicy.start(settings, document.hidden);
+    $("#settingsDialog").close();
+    showToast("Ajustes de bloqueo guardados y cifrados.");
+  } catch (error) { if (state.key) $("#settingsError").textContent = error.message; }
 }
 
 function createButton(label, iconPath, handler, className = "") {
@@ -197,7 +254,10 @@ function renderEntries() {
     .filter((entry) => `${entry.site} ${entry.username}`.toLocaleLowerCase("es").includes(query))
     .sort((a, b) => a.site.localeCompare(b.site, "es"));
 
-  for (const entry of filtered) {
+  const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  state.page = Math.max(1, Math.min(state.page, pageCount));
+  const start = (state.page - 1) * PAGE_SIZE;
+  for (const entry of filtered.slice(start, start + PAGE_SIZE)) {
     const card = document.createElement("article");
     card.className = "entry-card";
 
@@ -234,6 +294,15 @@ function renderEntries() {
   }
 
   elements.emptyState.classList.toggle("hidden", filtered.length > 0);
+  $("#emptyStateTitle").textContent = state.vault.entries.length ? "No hay coincidencias" : "Tu bóveda está esperando";
+  $("#emptyStateDescription").textContent = state.vault.entries.length ? "Prueba otra búsqueda o categoría." : "Crea tu primera contraseña segura y tenla siempre a mano.";
+  $("#emptyNewButton").hidden = state.vault.entries.length > 0;
+  for (const pagination of $$(".entry-pagination")) {
+    pagination.hidden = filtered.length === 0;
+    pagination.querySelector(".page-summary").textContent = filtered.length ? `${start + 1}–${Math.min(start + PAGE_SIZE, filtered.length)} de ${filtered.length} · Página ${state.page} de ${pageCount}` : "";
+    pagination.querySelector('[data-page-step="-1"]').disabled = state.page === 1;
+    pagination.querySelector('[data-page-step="1"]').disabled = state.page === pageCount;
+  }
   elements.allCount.textContent = String(state.vault.entries.length);
   elements.favoriteCount.textContent = String(state.vault.entries.filter((entry) => entry.favorite).length);
   renderCategoryNav();
@@ -259,6 +328,7 @@ function renderCategoryNav() {
 
 function setFilter(filter) {
   state.filter = filter;
+  state.page = 1;
   renderEntries();
 }
 
@@ -393,17 +463,21 @@ function openGenerator() {
   elements.generatorDialog.showModal();
 }
 
+const clipboardCleaner = createClipboardCleaner({
+  clipboard: { readText: () => navigator.clipboard.readText(), writeText: (value) => navigator.clipboard.writeText(value) },
+  onBlocked: () => showToast("El navegador no permitió limpiar el portapapeles. Copia otro texto para reemplazar la contraseña."),
+});
+
 async function copySecret(value) {
   try {
-    await navigator.clipboard.writeText(value);
-    showToast("Copiada. Intentaremos limpiarla en 30 segundos; el navegador puede impedirlo.");
-    clearTimeout(state.clipboardTimer);
-    state.clipboardTimer = setTimeout(async () => {
-      try {
-        const current = await navigator.clipboard.readText();
-        if (current === value) await navigator.clipboard.writeText("");
-      } catch { /* El navegador puede impedir leer el portapapeles sin interacción. */ }
-    }, 30000);
+    const invoke = window.__TAURI__?.core?.invoke;
+    if (invoke) {
+      await invoke("copy_secret", { text: value });
+      showToast("Copiada. Intentaremos limpiarla en 30 segundos o al cerrar, si no ha cambiado.");
+    } else {
+      await clipboardCleaner.copySecret(value);
+      showToast("Copiada. Intentaremos limpiarla en 30 segundos; el navegador puede impedirlo.");
+    }
   } catch {
     showToast("No se pudo copiar. Revisa el permiso del portapapeles.");
   }
@@ -506,12 +580,13 @@ async function confirmCsv(event) {
   event.preventDefault();
   if (!state.key || state.demo || busy || !csvPlan?.entries.length || !$("#csvAcknowledge").checked) return;
   const count = csvPlan.entries.length;
-  const next = { version: 1, entries: [...state.vault.entries, ...csvPlan.entries] };
+  const next = { ...state.vault, entries: [...state.vault.entries, ...csvPlan.entries] };
   $("#confirmCsv").disabled = true;
   try {
     await persistVault(next);
     $("#csvDialog").close();
     clearCsv();
+    state.page = 1;
     renderEntries();
     showToast(`${count} contraseñas importadas y cifradas. Verifica tus entradas y exporta una copia cifrada.`);
   } catch (error) { $("#csvError").textContent = error.message; $("#confirmCsv").disabled = false; }
@@ -535,10 +610,42 @@ async function confirmImport(event) {
       if (session !== generation) throw new Error("Operación cancelada");
       store.commit(migrated);
     });
+    if (generation !== session) return;
+    cacheProfile(localStorage, opened.vault.profile);
     lockVault("Copia verificada y restaurada. Abre tu bóveda.");
   } catch {
     $("#importError").textContent = "No se pudo verificar o guardar la copia. Revisa su clave y el espacio disponible. La bóveda actual no fue reemplazada.";
   } finally { busy = false; $("#importPassword").value = ""; }
+}
+
+function renderProfile() {
+  const profile = state.vault.profile;
+  $("#vaultGreeting").textContent = state.demo ? "DEMO · DATOS FICTICIOS" : profile ? `Hola, ${profile.username}` : "TU ESPACIO PRIVADO";
+  $("#profileButton").disabled = state.demo;
+  if (!state.demo && !cacheProfile(localStorage, profile)) showToast("La bóveda está abierta, pero no pudimos recordar tu nombre en este equipo.");
+}
+
+function showProfileDialog() {
+  if (!state.key || state.demo || busy) return;
+  $("#profileForm").reset();
+  $("#profileUsername").value = state.vault.profile?.username || "";
+  $("#profileError").textContent = "";
+  $("#profileDescription").textContent = state.vault.profile ? "Puedes cambiar el nombre de tu perfil local. Tu clave maestra y tus contraseñas se conservan." : "Tu bóveda ya está abierta. Elige cómo quieres que te saludemos; tus contraseñas actuales se conservan.";
+  $("#profileDialog").showModal();
+  $("#profileUsername").focus();
+}
+
+async function saveProfile(event) {
+  event.preventDefault();
+  if (!state.key || state.demo || busy) return;
+  try {
+    const profile = { version: 1, username: normalizeUsername($("#profileUsername").value) };
+    await persistVault({ ...state.vault, profile });
+    renderProfile();
+    $("#profileDialog").close();
+    $("#profileForm").reset();
+    showToast("Perfil guardado. La próxima vez solo necesitarás tu clave maestra.");
+  } catch (error) { $("#profileError").textContent = error.message; }
 }
 
 function startDemo() {
@@ -562,10 +669,28 @@ function showToast(message) {
 }
 
 function bindEvents() {
+  $("#settingsButton").addEventListener("click", showSettings);
+  $("#settingsForm").addEventListener("submit", saveSettings);
+  $("#cancelSettings").addEventListener("click", () => $("#settingsDialog").close());
+  $("#helpButton").addEventListener("click", () => $("#helpDialog").showModal());
+  $("#closeHelp").addEventListener("click", () => $("#helpDialog").close());
+  $$("[data-page-step]").forEach((button) => button.addEventListener("click", () => {
+    if (button.disabled || (!state.key && !state.demo)) return;
+    state.page += Number(button.dataset.pageStep);
+    renderEntries();
+    $("#entryPagination").scrollIntoView({ block: "start", behavior: "auto" });
+  }));
+  $("#profileButton").addEventListener("click", showProfileDialog);
+  $("#profileForm").addEventListener("submit", saveProfile);
+  $("#cancelProfile").addEventListener("click", () => $("#profileDialog").close());
+  $("#profileDialog").addEventListener("close", () => $("#profileForm").reset());
   setupUpdater();
   $("#csvImportButton").addEventListener("click", () => { elements.importFile.accept = ".csv,text/csv"; elements.importFile.click(); });
   $("#csvForm").addEventListener("submit", confirmCsv);
-  $("#csvDialog").addEventListener("close", clearCsv);
+  $("#csvDialog").addEventListener("close", () => {
+    // A queued close from a previous import must not erase a newly opened one.
+    if (!$("#csvDialog").open) clearCsv();
+  });
   $("#cancelCsv").addEventListener("click", () => { $("#csvDialog").close(); clearCsv(); });
   $("#previousBackupButton").addEventListener("click", () => {
     try {
@@ -575,13 +700,16 @@ function bindEvents() {
     } catch { showToast("No se puede leer la copia anterior."); }
   });
   $("#demoButton").addEventListener("click", startDemo);
-  $("#restoreButton").addEventListener("click", () => { elements.importFile.accept = ".json,application/json"; elements.importFile.click(); });
+  $("#restoreButton").addEventListener("click", () => { $("#helpDialog").close(); elements.importFile.accept = ".json,application/json"; elements.importFile.click(); });
   $("#importForm").addEventListener("submit", confirmImport);
   $("#cancelImport").addEventListener("click", () => { pendingImport = null; $("#importForm").reset(); $("#importDialog").close(); });
   $("#importDialog").addEventListener("close", () => { pendingImport = null; $("#importForm").reset(); });
   elements.entryDialog.addEventListener("close", () => elements.entryForm.reset());
   elements.generatorDialog.addEventListener("close", () => { elements.generatedPassword.textContent = ""; });
-  window.addEventListener("storage", (event) => { if (event.key === STORAGE_KEY || event.key === null) lockVault("La bóveda cambió en otra ventana. Vuelve a abrirla."); });
+  window.addEventListener("storage", (event) => {
+    if (event.key === STORAGE_KEY || event.key === null) lockVault("La bóveda cambió en otra ventana. Vuelve a abrirla.");
+    else if (event.key === PROFILE_KEY && !state.key && !state.demo) configureAuth();
+  });
   elements.authForm.addEventListener("submit", handleAuth);
   elements.lockButton.addEventListener("click", () => lockVault());
   $$("[data-reveal]").forEach((button) => button.addEventListener("click", () => {
@@ -593,7 +721,7 @@ function bindEvents() {
   $("#emptyNewButton").addEventListener("click", () => openEntryDialog());
   elements.entryForm.addEventListener("submit", saveEntry);
   elements.entryPassword.addEventListener("input", () => updateStrength(elements.entryPassword.value, elements.entryStrengthFill, elements.entryStrengthLabel));
-  elements.searchInput.addEventListener("input", renderEntries);
+  elements.searchInput.addEventListener("input", () => { state.page = 1; renderEntries(); });
   $("#openGeneratorButton").addEventListener("click", openGenerator);
   $("#regenerateButton").addEventListener("click", refreshGeneratedPassword);
   $("#copyGeneratedButton").addEventListener("click", () => copySecret(elements.generatedPassword.textContent));
@@ -611,7 +739,12 @@ function bindEvents() {
   $("#importButton").addEventListener("click", () => { elements.importFile.accept = ".json,application/json"; elements.importFile.click(); });
   elements.importFile.addEventListener("change", () => importVault(elements.importFile.files[0]));
   for (const name of ["pointerdown", "keydown"]) document.addEventListener(name, resetInactivityTimer, { passive: true });
-  document.addEventListener("visibilitychange", () => { if (document.hidden && (state.key || state.demo)) lockVault("Bóveda bloqueada al salir de la ventana"); });
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden) void clipboardCleaner.wipeIfUnchanged();
+    if (document.hidden && busy && !state.key) lockVault("Bóveda bloqueada al salir de la ventana");
+    else lockPolicy.visibility(document.hidden);
+  });
+  window.addEventListener("pagehide", () => lockVault("Bóveda bloqueada al cerrar"));
 }
 
 function setupUpdater() {

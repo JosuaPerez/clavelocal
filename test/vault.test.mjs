@@ -67,7 +67,7 @@ test("fallos de cuota no reemplazan el archivo existente", async () => {
   store.commit(envelope);
   const original = memory.getItem(STORAGE_KEY);
   memory.setItem = () => { throw new Error("QuotaExceededError"); };
-  assert.throws(() => store.commit(envelope), /Quota/);
+  assert.throws(() => store.commit(envelope), /No se pudo guardar/);
   assert.equal(memory.getItem(STORAGE_KEY), original);
 });
 test("restaurar una bóveda corrupta conserva la copia anterior válida", async () => {

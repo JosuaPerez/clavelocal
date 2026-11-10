@@ -24,7 +24,7 @@
         </a>
         <div class="top-actions">
           <button id="checkUpdatesButton" class="secondary-button" type="button" hidden>Buscar actualizaciones</button>
-          <a href="https://github.com/JosuaPerez/clavelocal/issues/new?template=feedback.yml" target="_blank" rel="noopener noreferrer">Enviar comentarios</a>
+          <button id="helpButton" class="text-button" type="button">Ayuda</button>
           <span class="privacy-pill"><i></i> Solo en este PC</span>
           <button class="icon-button hidden" id="lockButton" type="button" aria-label="Bloquear bóveda" title="Bloquear bóveda">
             <svg viewBox="0 0 24 24"><path d="M7 10V7a5 5 0 0 1 10 0v3m-11 0h12a2 2 0 0 1 2 2v8H4v-8a2 2 0 0 1 2-2Z"/></svg>
@@ -45,12 +45,18 @@
         </div>
 
         <div class="auth-card glass-panel">
-          <div class="auth-icon"><svg viewBox="0 0 24 24"><path d="M12 3 4.5 6v5.4c0 4.7 3.2 8.2 7.5 9.6 4.3-1.4 7.5-4.9 7.5-9.6V6L12 3Zm0 5v8m-3-4h6"/></svg></div>
+          <div class="profile-avatar" id="profileAvatar" aria-hidden="true" hidden></div>
+          <div class="auth-icon" id="authLockIcon"><svg viewBox="0 0 24 24"><path d="M12 3 4.5 6v5.4c0 4.7 3.2 8.2 7.5 9.6 4.3-1.4 7.5-4.9 7.5-9.6V6L12 3Zm0 5v8m-3-4h6"/></svg></div>
           <p class="card-kicker" id="authKicker">PRIMER ACCESO</p>
           <h2 id="authTitle">Crea tu bóveda</h2>
           <p class="muted" id="authDescription">Elige una clave maestra. Será la única forma de abrir tus contraseñas.</p>
 
           <form id="authForm" novalidate>
+            <div id="authUsernameGroup">
+              <label for="authUsername">Nombre de usuario</label>
+              <input id="authUsername" type="text" autocomplete="username" minlength="2" maxlength="40" placeholder="Ej. Josua" required>
+              <p class="microcopy">Recordaremos tu nombre para saludarte en este equipo. Será visible antes de desbloquear; tu clave maestra nunca se guarda.</p>
+            </div>
             <label for="masterPassword">Clave maestra</label>
             <div class="input-wrap">
               <input id="masterPassword" type="password" autocomplete="new-password" minlength="12" placeholder="Mínimo 12 caracteres" required>
@@ -66,10 +72,7 @@
             <p id="authError" class="form-error" role="alert"></p>
             <button class="primary-button full" id="authSubmit" type="submit">Crear bóveda <span>→</span></button>
           </form>
-          <button class="secondary-button full" id="demoButton" type="button">Probar con datos ficticios</button>
-          <button class="secondary-button full" id="restoreButton" type="button">Restaurar copia cifrada</button>
-          <button class="secondary-button full" id="previousBackupButton" type="button">Descargar copia anterior</button>
-          <p class="microcopy">La bóveda se guarda en este navegador y perfil. Exporta una copia: borrar los datos del navegador también borra la bóveda.</p>
+          <button class="demo-link" id="demoButton" type="button">Probar con datos ficticios</button>
           <p class="microcopy"><svg viewBox="0 0 24 24"><path d="M7 10V7a5 5 0 0 1 10 0v3m-11 0h12v10H6V10Z"/></svg> No podemos recuperar tu clave maestra. Guárdala bien.</p>
         </div>
       </section>
@@ -86,6 +89,8 @@
             <nav id="categoryNav"></nav>
           </div>
           <div class="sidebar-footer">
+            <button id="profileButton" type="button">Mi perfil</button>
+            <button id="settingsButton" type="button">Ajustes de bloqueo</button>
             <button id="csvImportButton" type="button">Importar contraseñas CSV</button>
             <button id="exportButton" type="button">Exportar copia cifrada</button>
             <button id="importButton" type="button">Restaurar copia JSON</button>
@@ -95,9 +100,10 @@
         </aside>
 
         <div class="vault-content">
+          <p id="vaultNotice" role="status" hidden></p>
           <div class="vault-header">
             <div>
-              <p class="eyebrow"><span></span> TU ESPACIO PRIVADO</p>
+              <p class="eyebrow" id="vaultGreeting">TU ESPACIO PRIVADO</p>
               <h2>Mis contraseñas</h2>
               <p class="muted">Todo organizado, todo bajo llave.</p>
             </div>
@@ -112,16 +118,63 @@
             <button class="generator-shortcut" id="openGeneratorButton" type="button"><span>✦</span> Generador</button>
           </div>
 
+          <nav id="entryPagination" class="entry-pagination" aria-label="Páginas de contraseñas" hidden>
+            <span class="page-summary" role="status" aria-live="polite"></span>
+            <div class="page-actions"><button type="button" class="secondary-button" data-page-step="-1" aria-controls="entryList">← Anterior</button><button type="button" class="secondary-button" data-page-step="1" aria-controls="entryList">Siguiente →</button></div>
+          </nav>
           <div id="entryList" class="entry-list" aria-live="polite"></div>
+          <nav id="entryPaginationBottom" class="entry-pagination" aria-label="Páginas de contraseñas, al final de la lista" hidden>
+            <span class="page-summary" aria-hidden="true"></span>
+            <div class="page-actions"><button type="button" class="secondary-button" data-page-step="-1" aria-controls="entryList">← Anterior</button><button type="button" class="secondary-button" data-page-step="1" aria-controls="entryList">Siguiente →</button></div>
+          </nav>
           <div id="emptyState" class="empty-state">
             <div class="empty-orbit"><span>＋</span></div>
-            <h3>Tu bóveda está esperando</h3>
-            <p>Crea tu primera contraseña segura y tenla siempre a mano.</p>
+            <h3 id="emptyStateTitle">Tu bóveda está esperando</h3>
+            <p id="emptyStateDescription">Crea tu primera contraseña segura y tenla siempre a mano.</p>
             <button class="primary-button" id="emptyNewButton" type="button">Crear primera contraseña</button>
           </div>
         </div>
       </section>
     </main>
+
+    <dialog id="helpDialog" class="app-dialog">
+      <div class="help-content">
+        <div class="dialog-header"><h2>Ayuda y recuperación</h2><button id="closeHelp" type="button" class="dialog-close" aria-label="Cerrar ayuda">×</button></div>
+        <p>La bóveda se guarda en este navegador o en la aplicación de este usuario. Exporta una copia cifrada: borrar los datos del navegador o de la app también puede borrar la bóveda.</p>
+        <div class="recovery-actions"><button class="secondary-button" id="restoreButton" type="button">Restaurar copia cifrada</button><button class="secondary-button" id="previousBackupButton" type="button">Descargar copia anterior</button></div>
+        <p>Las copias requieren su clave maestra. No podemos recuperarla ni desbloquear una bóveda sin ella.</p>
+        <p>La copia anterior conserva la versión previa al último cambio guardado o migración. Abrir y bloquear no la reemplazan. No sustituye una copia externa.</p>
+        <a href="https://github.com/JosuaPerez/clavelocal/issues/new?template=feedback.yml" target="_blank" rel="noopener noreferrer">Enviar comentarios ↗</a>
+      </div>
+    </dialog>
+
+    <dialog id="settingsDialog" class="app-dialog" aria-labelledby="settingsTitle">
+      <form id="settingsForm">
+        <h2 id="settingsTitle">Ajustes de bloqueo</h2>
+        <label for="idleMinutes">Bloquear por inactividad</label>
+        <select id="idleMinutes"><option value="1">1 minuto</option><option value="5">5 minutos (recomendado)</option><option value="15">15 minutos</option><option value="30">30 minutos</option></select>
+        <p class="microcopy">Cuenta el tiempo sin usar el teclado o ratón dentro de la bóveda. Un plazo mayor la deja abierta durante más tiempo.</p>
+        <label for="hiddenSeconds">Al ocultar la ventana o cambiar de pestaña</label>
+        <select id="hiddenSeconds"><option value="0">Bloquear inmediatamente (recomendado)</option><option value="15">Esperar 15 segundos</option><option value="60">Esperar 60 segundos</option></select>
+        <p class="microcopy">La espera facilita pegar una contraseña en otra app. Durante ese plazo la bóveda sigue abierta en memoria. El bloqueo por inactividad continúa contando. Bloquear manualmente y cerrar siempre bloquean de inmediato.</p>
+        <p class="form-error" id="settingsError" role="alert"></p>
+        <div class="dialog-actions"><button id="cancelSettings" class="secondary-button" type="button">Cancelar</button><button id="saveSettings" class="primary-button" type="submit">Guardar ajustes</button></div>
+      </form>
+    </dialog>
+
+    <dialog id="profileDialog" class="app-dialog">
+      <form id="profileForm" novalidate>
+        <p class="card-kicker">TU PERFIL LOCAL</p>
+        <h2>Un espacio a tu nombre</h2>
+        <p id="profileDescription"></p>
+        <label for="profileUsername">Nombre de usuario</label>
+        <input id="profileUsername" type="text" autocomplete="username" minlength="2" maxlength="40" required>
+        <p class="microcopy">Este nombre aparecerá en la bienvenida, incluso con la bóveda bloqueada. No es una cuenta en servidores ni una segunda contraseña.</p>
+        <p class="form-error" id="profileError" role="alert"></p>
+        <div class="future-access"><strong>Windows Hello / passkeys</strong><span>Próximamente</span><p>Por ahora, el desbloqueo siempre requiere tu clave maestra.</p></div>
+        <div class="dialog-actions"><button id="cancelProfile" class="secondary-button" type="button">Ahora no</button><button id="saveProfile" class="primary-button" type="submit">Guardar perfil</button></div>
+      </form>
+    </dialog>
 
     <dialog id="updateDialog" class="app-dialog">
       <form method="dialog">

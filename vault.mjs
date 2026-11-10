@@ -1,4 +1,6 @@
 // Vault format v1 remains readable; new vaults use a stronger work factor.
+import { validateProfile } from "./profile.mjs";
+import { validateSettings } from "./settings.mjs";
 export const ITERATIONS = 600000;
 export const MAX_FILE_BYTES = 4 * 1024 * 1024;
 export const STORAGE_KEY = "clavelocal.vault.v1";
@@ -19,6 +21,8 @@ export function validateEnvelope(value) {
 
 export function validateVault(value) {
   if (value?.version !== 1 || !Array.isArray(value.entries) || value.entries.length > 5000) throw new Error("Bóveda no válida");
+  if (value.profile !== undefined) validateProfile(value.profile);
+  if (value.settings !== undefined) validateSettings(value.settings);
   const ids = new Set();
   for (const entry of value.entries) {
     if (!entry || typeof entry.id !== "string" || !entry.id || ids.has(entry.id) || typeof entry.favorite !== "boolean") throw new Error("Entrada no válida");
@@ -51,6 +55,16 @@ export async function openVault(password, envelope) {
   return { key, vault: validateVault(JSON.parse(decoder.decode(data))) };
 }
 
+export class StorageWriteError extends Error {
+  constructor(backupRecoveryFailed = false) {
+    super(backupRecoveryFailed
+      ? "No se pudo guardar. La bóveda principal sigue intacta, pero no se pudo restaurar la copia anterior. Exporta una copia cifrada."
+      : "No se pudo guardar. La bóveda y su copia anterior se conservan. Revisa el espacio disponible.");
+    this.name = "StorageWriteError";
+    this.backupRecoveryFailed = backupRecoveryFailed;
+  }
+}
+
 // Compare and replace under a cross-tab Web Lock. A stale tab cannot overwrite changes.
 export class VaultStore {
   constructor(storage) { this.storage = storage; this.expected = undefined; }
@@ -63,13 +77,28 @@ export class VaultStore {
     validateEnvelope(envelope);
     if (this.expected === undefined || this.storage.getItem(STORAGE_KEY) !== this.expected) throw new Error("La bóveda cambió en otra ventana. Bloquea y vuelve a abrir antes de guardar.");
     const raw = JSON.stringify(envelope);
-    // If backup or primary storage fails, callers keep the previous in-memory vault.
+    const backupKey = `${STORAGE_KEY}.previous`;
+    const previousBackup = this.storage.getItem(backupKey);
+    let rotated = false;
+    // localStorage writes are individually atomic, but the pair is not a transaction.
     if (this.expected !== null) {
       let validPrevious = false;
       try { validateEnvelope(JSON.parse(this.expected)); validPrevious = true; } catch { /* Preserve an older valid backup when the primary file is malformed. */ }
-      if (validPrevious) this.storage.setItem(`${STORAGE_KEY}.previous`, this.expected);
+      if (validPrevious) {
+        try { this.storage.setItem(backupKey, this.expected); rotated = true; }
+        catch { throw new StorageWriteError(); }
+      }
     }
-    this.storage.setItem(STORAGE_KEY, raw);
+    try { this.storage.setItem(STORAGE_KEY, raw); }
+    catch {
+      if (rotated) {
+        try {
+          if (previousBackup === null) this.storage.removeItem(backupKey);
+          else this.storage.setItem(backupKey, previousBackup);
+        } catch { throw new StorageWriteError(true); }
+      }
+      throw new StorageWriteError();
+    }
     this.expected = raw;
   }
 }
