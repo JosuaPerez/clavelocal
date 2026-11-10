@@ -23,6 +23,7 @@ Se intentará confirmar el reporte en un plazo de 7 días. La corrección y divu
 - ejecución de contenido almacenado;
 - filtración por red, logs o telemetría;
 - importaciones manipuladas que provoquen ejecución o pérdida de datos.
+- actualización desde un origen no autorizado, sin firma válida o con versión distinta de la firmada.
 
 Nunca compartas una clave maestra ni una exportación con datos reales para demostrar un problema.
 
