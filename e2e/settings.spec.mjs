@@ -3,7 +3,7 @@ const password = "solo-pruebas-ajustes-ficticios";
 async function create(page) {
   await page.clock.install();
   await page.goto("/");
-  await page.locator("#authUsername").fill("Prueba");
+  await page.locator("#authUsername").fill("Perfil de prueba");
   await page.locator("#masterPassword").fill(password);
   await page.locator("#confirmPassword").fill(password);
   await page.locator("#authSubmit").click();

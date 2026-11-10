@@ -17,6 +17,10 @@ Entradas, notas y clave maestra frente a la lectura del archivo de bóveda cuand
 - Los metadatos del envoltorio se validan estrictamente; importaciones se descifran y validan antes de reemplazar. Se permiten solo factores KDF conocidos para evitar trabajo arbitrario. El tamaño máximo es 4 MiB y 5.000 entradas.
 - Escrituras usan Web Locks y comparación de versión almacenada. Se rechazan ventanas obsoletas y se bloquea al recibir cambios de almacenamiento.
 
+## Claves elegidas por el usuario
+
+Al crear una bóveda se exige un mínimo de 12 caracteres visibles (grupos de grafemas) y se detectan claves comunes, estructuras triviales y coincidencias con el nombre de usuario completo. La comprobación usa una lista local pequeña curada por el proyecto y reglas deterministas. Reduce elecciones obvias y no anuncia bits de entropía. Una clave mediocre que pasa el filtro sigue expuesta a un ataque offline si alguien obtiene la bóveda cifrada. El desbloqueo de copias existentes conserva su clave, y guardar una entrada o importar CSV sigue admitiendo contraseñas débiles.
+
 ## Aplicación y distribución
 
 El escritorio empaqueta recursos locales con Tauri, sin APIs genéricas de shell, archivos ni HTTP expuestas al contenido web. La bóveda usa almacenamiento cifrado del WebView del usuario. La CSP no autoriza scripts remotos; en escritorio admite únicamente el IPC nativo requerido por dos comandos de actualización y `copy_secret`. La web pública es una demo separada, sin formularios habilitados para secretos reales; no distribuye la app real por HTTP.

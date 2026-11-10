@@ -101,6 +101,9 @@ textarea { resize: vertical; }
 .secondary-button { background: rgba(255,255,255,.035); border-color: var(--line); color: #c8ced8; }
 .secondary-button:hover, .generator-shortcut:hover { border-color: rgba(124,245,188,.35); color: var(--accent); }
 .form-error { color: var(--danger); font-size: .75rem; min-height: 18px; margin: 10px 0 0; }
+.password-policy { color: var(--muted); font-size: .75rem; line-height: 1.5; margin: 8px 0; }
+.password-policy p { margin: 0 0 4px; }
+.password-policy p:first-child { color: var(--text); }
 .microcopy { display: flex; align-items: center; justify-content: center; gap: 7px; color: #687285; font-size: .67rem; margin: 22px 0 0; text-align: center; }
 .microcopy svg { width: 14px; height: 14px; }
 
