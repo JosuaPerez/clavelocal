@@ -6,6 +6,10 @@ Entradas, notas y clave maestra frente a la lectura del archivo de bóveda cuand
 
 ## Límites
 
+- Desbloquear una bóveda de 600.000 iteraciones no escribe el archivo ni rota `.previous`; un perfil ausente se guarda solo al completarlo. La misma clave y salt se reutilizan entre sesiones; cada cifrado genera un IV aleatorio de 96 bits. No se rota la clave por abrir. El presupuesto de IV aleatorios bajo una clave es finito: el límite de 2^32 invocaciones de [NIST SP 800-38D §8.3](https://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-38d.pdf) no debe tratarse como garantía de ausencia de colisiones. Esta app limita entradas, pero no cuenta cifrados de por vida.
+- Al migrar desde 310.000 se guardan nuevos parámetros solo si la escritura tiene éxito. Si falla, se abre con clave, salt e iteraciones originales, usados también en las ediciones posteriores. Los conflictos entre ventanas no se tratan como fallos recuperables de migración.
+- La copia anterior rota solo con escrituras reales. `localStorage` no ofrece una transacción de dos claves: si falla la escritura principal, se intenta restaurar `.previous`. Si también falla esa restauración, la principal permanece intacta, pero `.previous` pudo cambiar; se informa y se recomienda exportar. Si falla escribir la copia, se aborta antes de tocar la principal. Las copias comparten el límite de espacio del almacenamiento local.
+
 - Malware, keyloggers, extensiones privilegiadas, acceso al proceso y una sesión desbloqueada quedan fuera de esa protección. No hay garantía de borrado físico de memoria JavaScript ni de historial del portapapeles de Windows.
 - El bloqueo vacía campos y listas, cancela callbacks de copia y elimina referencias de la sesión. Se activa por inactividad y al ocultar el documento. No se promete integración con suspensión/bloqueo de sesión de Windows en esta versión.
 - La bóveda local cifrada puede ser copiada y atacada offline. Una clave maestra larga y única es esencial; limitar intentos en la interfaz no detiene ese ataque.

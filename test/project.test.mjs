@@ -5,7 +5,7 @@ import test from "node:test";
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
 test("los archivos JavaScript evitan patrones de ejecución dinámica", async () => {
-  const source = `${await read("app.js")}\n${await read("server.mjs")}`;
+  const source = (await Promise.all(["app.js", "server.mjs", "vault.mjs", "profile.mjs", "csv.mjs", "session.mjs"].map(read))).join("\n");
   for (const pattern of [/\beval\s*\(/, /new\s+Function\b/, /\.innerHTML\s*=/, /document\.write\s*\(/]) {
     assert.equal(pattern.test(source), false, `Patrón inseguro encontrado: ${pattern}`);
   }
