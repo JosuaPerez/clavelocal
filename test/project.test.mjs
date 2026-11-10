@@ -1,13 +1,14 @@
 import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
 import test from "node:test";
-
-const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
+import { appModules, read } from "./app-modules.mjs";
 
 test("los archivos JavaScript evitan patrones de ejecución dinámica", async () => {
-  const source = (await Promise.all(["app.js", "server.mjs", "vault.mjs", "profile.mjs", "csv.mjs", "session.mjs", "clipboard.mjs", "settings.mjs"].map(read))).join("\n");
-  for (const pattern of [/\beval\s*\(/, /new\s+Function\b/, /\.innerHTML\s*=/, /document\.write\s*\(/]) {
-    assert.equal(pattern.test(source), false, `Patrón inseguro encontrado: ${pattern}`);
+  const modules = await appModules();
+  modules.set("server.mjs", await read("server.mjs"));
+  for (const [path, source] of modules) {
+    for (const pattern of [/\beval\s*\(/, /new\s+Function\b/, /\.innerHTML\s*=/, /document\.write\s*\(/]) {
+      assert.doesNotMatch(source, pattern, `Patrón inseguro en ${path}: ${pattern}`);
+    }
   }
 });
 

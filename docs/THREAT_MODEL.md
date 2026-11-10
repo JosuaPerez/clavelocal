@@ -51,6 +51,8 @@ Los CSV se procesan en memoria dentro del equipo. Se exige una bóveda abierta y
 
 ## Contribuciones
 
+Las pruebas recorren los imports locales desde `app.js`, comparan la lista de módulos con el servidor local y ambos paquetes, y escanean esos módulos y el servidor en busca de patrones conocidos de ejecución dinámica o inserción de HTML. El recorrido reconoce imports literales según la convención del proyecto y el escaneo es textual. Ambos complementan la revisión de código.
+
 Se tratan los PR como código no confiable. Los checks de PR no reciben credenciales de publicación. CODEOWNERS y las reglas de rama requieren revisión para contribuciones externas. El administrador mantiene capacidad de bypass; proteger su cuenta con 2FA/passkey y custodiar sus credenciales es una responsabilidad manual que este repositorio no puede verificar.
 
 Dependabot, CodeQL, revisión de dependencias, fijación de acciones y protección contra secretos reducen riesgo pero no certifican ausencia de código malicioso. Los workflows se revisan como código de alta sensibilidad. GitHub Pages despliega solo desde `main`; la compilación de Windows solo sube artefactos, sin publicar releases. Las firmas futuras no deberán estar disponibles en workflows de PR.
