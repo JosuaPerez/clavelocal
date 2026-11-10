@@ -4,6 +4,9 @@ Todos los cambios importantes se documentarán aquí siguiendo un esquema inspir
 
 ## [Sin publicar]
 
+- Limpieza de portapapeles que no se cancela al bloquear; navegador con reintento al volver y aviso si no tiene permiso.
+- Comando nativo de copia en Windows con exclusión de historial/sincronización, temporizador independiente de la UI, comparación bajo bloqueo del portapapeles e intento de limpieza al cerrar.
+
 - Apertura sin volver a cifrar ni rotar la copia anterior cuando no se requiere migración. Una migración que no se puede guardar permite abrir con los parámetros originales y muestra un aviso.
 - Recuperación de la copia anterior si falla la escritura principal; aviso explícito si también falla esa recuperación.
 

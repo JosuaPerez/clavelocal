@@ -2,6 +2,18 @@
 
 use std::{sync::Mutex, time::Duration};
 use tauri_plugin_updater::{Update, UpdaterExt};
+use tauri::Manager;
+mod clipboard;
+use clipboard::SecretClipboard;
+
+#[tauri::command]
+fn copy_secret(text: String, window: tauri::WebviewWindow, clipboard: tauri::State<'_, SecretClipboard>) -> Result<(), String> {
+    #[cfg(windows)]
+    let owner = window.hwnd().map_err(|_| "No se pudo acceder a la ventana")?.0 as usize;
+    #[cfg(not(windows))]
+    let owner = { let _ = window; 0 };
+    clipboard.copy(&text, owner)
+}
 
 #[derive(Default)]
 struct PendingUpdate(Mutex<Option<Update>>);
@@ -44,10 +56,21 @@ fn main() {
     tauri::Builder::default()
         .plugin(tauri_plugin_updater::Builder::new().build())
         .manage(PendingUpdate::default())
-        // Only these two commands are exposed; no arbitrary network, path or shell API.
-        .invoke_handler(tauri::generate_handler![check_update, install_update])
-        .run(tauri::generate_context!())
-        .expect("No se pudo iniciar ClaveLocal");
+        .manage(SecretClipboard::default())
+        .on_window_event(|window, event| {
+            if matches!(event, tauri::WindowEvent::CloseRequested { .. }) {
+                window.state::<SecretClipboard>().wipe_now();
+            }
+        })
+        // No generic clipboard reader, arbitrary path, network or shell API.
+        .invoke_handler(tauri::generate_handler![check_update, install_update, copy_secret])
+        .build(tauri::generate_context!())
+        .expect("No se pudo iniciar ClaveLocal")
+        .run(|app, event| {
+            if matches!(event, tauri::RunEvent::ExitRequested { .. } | tauri::RunEvent::Exit) {
+                app.state::<SecretClipboard>().wipe_now();
+            }
+        });
 }
 
 #[cfg(test)]

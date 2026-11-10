@@ -28,3 +28,7 @@ serde_json = "1"
 base64 = "0.22"
 minisign-verify = "0.3"
 semver = "1"
+sha2 = "=0.10.9"
+
+[target.'cfg(windows)'.dependencies]
+windows-sys = { version = "=0.61.2", features = ["Win32_Foundation", "Win32_System_DataExchange", "Win32_System_Memory"] }
