@@ -37,6 +37,8 @@ test("GLib vendorizado conserva todos los bytes oficiales salvo las dos líneas 
   }
   const cargo = await readFile(new URL("../src-tauri/Cargo.toml", import.meta.url), "utf8");
   assert.match(cargo, /\[patch\.crates-io\][\s\S]*glib = \{ path = "vendor\/glib-0\.18\.5" \}/);
+  const regression = await readFile(new URL("../src-tauri/security/glib-regression/Cargo.toml", import.meta.url), "utf8");
+  assert.match(regression, /glib = \{ path = "\.\.\/\.\.\/vendor\/glib-0\.18\.5" \}/);
 });
 test("la verificación detecta retirar el arreglo y modificaciones ajenas al backport", async () => {
   const source = await readFile(new URL(changed, root), "utf8");
