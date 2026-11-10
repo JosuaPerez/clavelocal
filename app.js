@@ -4,6 +4,7 @@ import { STORAGE_KEY, MAX_FILE_BYTES, VaultStore, randomBytes, deriveKey, encryp
 import { parseCsv, planCsvImport } from "./csv.mjs";
 import { PROFILE_KEY, normalizeUsername, readCachedProfile, cacheProfile } from "./profile.mjs";
 import { openSession } from "./session.mjs";
+import { createClipboardCleaner } from "./clipboard.mjs";
 const INACTIVITY_MS = 5 * 60 * 1000;
 const PAGE_SIZE = 10;
 const store = new VaultStore(localStorage);
@@ -20,7 +21,6 @@ const state = {
   filter: "all",
   page: 1,
   inactivityTimer: null,
-  clipboardTimer: null,
   salt: null,
   iterations: null,
   demo: false,
@@ -164,7 +164,6 @@ function lockVault(message = "Bóveda bloqueada") {
   state.vault = { version: 1, entries: [] };
   state.page = 1;
   clearTimeout(state.inactivityTimer);
-  clearTimeout(state.clipboardTimer);
   elements.entryForm.reset();
   elements.authForm.reset();
   $("#profileForm").reset();
@@ -437,17 +436,21 @@ function openGenerator() {
   elements.generatorDialog.showModal();
 }
 
+const clipboardCleaner = createClipboardCleaner({
+  clipboard: { readText: () => navigator.clipboard.readText(), writeText: (value) => navigator.clipboard.writeText(value) },
+  onBlocked: () => showToast("El navegador no permitió limpiar el portapapeles. Copia otro texto para reemplazar la contraseña."),
+});
+
 async function copySecret(value) {
   try {
-    await navigator.clipboard.writeText(value);
-    showToast("Copiada. Intentaremos limpiarla en 30 segundos; el navegador puede impedirlo.");
-    clearTimeout(state.clipboardTimer);
-    state.clipboardTimer = setTimeout(async () => {
-      try {
-        const current = await navigator.clipboard.readText();
-        if (current === value) await navigator.clipboard.writeText("");
-      } catch { /* El navegador puede impedir leer el portapapeles sin interacción. */ }
-    }, 30000);
+    const invoke = window.__TAURI__?.core?.invoke;
+    if (invoke) {
+      await invoke("copy_secret", { text: value });
+      showToast("Copiada. Intentaremos limpiarla en 30 segundos o al cerrar, si no ha cambiado.");
+    } else {
+      await clipboardCleaner.copySecret(value);
+      showToast("Copiada. Intentaremos limpiarla en 30 segundos; el navegador puede impedirlo.");
+    }
   } catch {
     showToast("No se pudo copiar. Revisa el permiso del portapapeles.");
   }
@@ -703,7 +706,10 @@ function bindEvents() {
   $("#importButton").addEventListener("click", () => { elements.importFile.accept = ".json,application/json"; elements.importFile.click(); });
   elements.importFile.addEventListener("change", () => importVault(elements.importFile.files[0]));
   for (const name of ["pointerdown", "keydown"]) document.addEventListener(name, resetInactivityTimer, { passive: true });
-  document.addEventListener("visibilitychange", () => { if (document.hidden && (state.key || state.demo || busy)) lockVault("Bóveda bloqueada al salir de la ventana"); });
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden) void clipboardCleaner.wipeIfUnchanged();
+    if (document.hidden && (state.key || state.demo || busy)) lockVault("Bóveda bloqueada al salir de la ventana");
+  });
 }
 
 function setupUpdater() {
