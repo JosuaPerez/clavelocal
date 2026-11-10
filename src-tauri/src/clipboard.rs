@@ -41,7 +41,7 @@ impl SecretClipboard {
         let mut pending = mutex.lock().map_err(|_| "No se pudo preparar el portapapeles")?;
         let hash = digest(text);
         let sequence = platform::copy(text, owner).map_err(|_| "No se pudo copiar con las protecciones de Windows. Inténtalo de nuevo.")?;
-        *pending = Some(Pending { hash, sequence, deadline: Instant::now() + Duration::from_secs(30), attempts: 0 });
+        *pending = sequence.map(|sequence| Pending { hash, sequence, deadline: Instant::now() + Duration::from_secs(30), attempts: 0 });
         changed.notify_one();
         Ok(())
     }
@@ -87,7 +87,7 @@ mod platform {
     use windows_sys::Win32::{
         Foundation::{GlobalFree, HWND},
         System::{DataExchange::{OpenClipboard, CloseClipboard, EmptyClipboard, GetClipboardData,
-            SetClipboardData, RegisterClipboardFormatW, GetClipboardSequenceNumber, IsClipboardFormatAvailable},
+            SetClipboardData, RegisterClipboardFormatW, GetClipboardOwner, GetClipboardSequenceNumber, IsClipboardFormatAvailable},
             Memory::{GlobalAlloc, GlobalLock, GlobalUnlock, GlobalSize, GMEM_MOVEABLE}},
     };
     const UNICODE_TEXT: u32 = 13;
@@ -119,9 +119,9 @@ mod platform {
         Ok(())
     }
 
-    pub fn copy(text: &str, owner: usize) -> Result<u32, ()> {
+    pub fn copy(text: &str, owner: usize) -> Result<Option<u32>, ()> {
         if owner == 0 { return Err(()); }
-        let _open = Open::acquire(owner as HWND)?;
+        let open = Open::acquire(owner as HWND)?;
         if unsafe { EmptyClipboard() } == 0 { return Err(()); }
         let result = (|| {
             // Set all opt-out formats before placing any secret on the clipboard.
@@ -136,7 +136,12 @@ mod platform {
         })();
         if result.is_err() { unsafe { EmptyClipboard(); } }
         result?;
-        Ok(unsafe { GetClipboardSequenceNumber() })
+        // Windows can advance the sequence on CloseClipboard, after the writes.
+        // Read the committed sequence first, then verify our window still owns it.
+        // A subsequent replacement changes the sequence before cleanup can clear it.
+        drop(open);
+        let sequence = unsafe { GetClipboardSequenceNumber() };
+        Ok((unsafe { GetClipboardOwner() } == owner as HWND).then_some(sequence))
     }
 
     pub struct SystemClipboard;
@@ -246,7 +251,7 @@ mod platform {
 #[cfg(not(windows))]
 mod platform {
     use super::ClipboardAccess;
-    pub fn copy(_: &str, _: usize) -> Result<u32, ()> { Err(()) }
+    pub fn copy(_: &str, _: usize) -> Result<Option<u32>, ()> { Err(()) }
     pub struct SystemClipboard;
     impl ClipboardAccess for SystemClipboard {
         fn wipe_matching(&self, _: &[u8; 32], _: u32) -> Result<(), ()> { Err(()) }

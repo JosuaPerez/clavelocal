@@ -8,6 +8,7 @@ Todos los cambios importantes se documentarán aquí siguiendo un esquema inspir
 
 - Versión experimental con las mejoras integradas de seguridad, recuperación y bloqueo.
 - Prueba nativa de copia, formatos de exclusión, conservación de otro texto y limpieza temporizada en el Windows aislado de CI, con datos ficticios.
+- La limpieza nativa compara el número de secuencia confirmado tras cerrar la escritura del portapapeles; el valor anterior podía impedir limpiar la copia.
 
 - Ajustes cifrados de bloqueo: inactividad de 1/5/15/30 minutos y bloqueo al ocultar inmediato o con 15/60 segundos de espera. Se mantienen los valores predeterminados de 5 minutos e inmediato.
 - Las bóvedas sin ajustes se abren sin migración adicional. Las funciones publicadas de 0.3.2 aceptan y conservan el campo al guardar, pero ignoran sus opciones y aplican su bloqueo fijo (probado con funciones congeladas de esa versión, no con un instalador antiguo).
