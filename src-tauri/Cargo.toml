@@ -7,6 +7,16 @@ license = "MIT"
 rust-version = "1.90"
 default-run = "clavelocal"
 
+[workspace]
+members = ["security/glib-regression"]
+exclude = ["vendor/glib-0.18.5"]
+default-members = ["."]
+resolver = "2"
+
+[patch.crates-io]
+# Upstream fix backported verbatim; provenance checked by test/vendor.test.mjs.
+glib = { path = "vendor/glib-0.18.5" }
+
 [build-dependencies]
 tauri-build = { version = "2", features = [] }
 
