@@ -49,6 +49,8 @@ OneDrive Known Folder Move cubre carpetas como Escritorio, Documentos e Imágene
 
 ## Criterio de salida de la fase 1
 
+Consulta el [resultado del primer experimento en Windows](0001-fase-1-resultados.md).
+
 - **Corte de energía en una VM con disco desechable.** Interrumpir el sistema durante escritura del temporal, después del volcado, durante el reemplazo y antes de rotar copias. Tras cada arranque, abrir con Web Crypto la revisión confirmada más reciente, ya sea desde el principal o siguiendo la recuperación documentada. Si la escritura quedó sin confirmar, también puede quedar la revisión nueva completa. La ausencia de corrupción en una terminación normal o de proceso no sustituye el corte de la VM.
 - **Antivirus activo.** Probar con la protección en tiempo real activa y registrar producto, versión, configuración y resultado. Probar además contención inducida de principal, temporal y copias con un proceso que deniegue el uso compartido. Cada guardado debe persistir exactamente lo confirmado o informar del fallo y permitir recuperar la última revisión confirmada. La prueba de contención complementa la prueba con antivirus activo.
 - **Permisos y recuperación.** Verificar herencia efectiva con dos cuentas estándar y recuperar una copia cifrada por la ruta manual. Registrar Windows, sistema de archivos, pasos, revisiones y resultado de cada prueba.
