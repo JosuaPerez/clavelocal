@@ -4,6 +4,8 @@ Todos los cambios importantes se documentarán aquí siguiendo un esquema inspir
 
 ## [Sin publicar]
 
+## [0.5.0] - 2026-11-11
+
 - Ventana de actualizaciones más compacta, con confirmación de copia solo al instalar y opción de volver a buscar tras un error.
 - Cinco contraseñas por página, con los controles de navegación al final de la lista.
 
