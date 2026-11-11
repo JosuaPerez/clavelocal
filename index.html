@@ -106,6 +106,10 @@
 
         <div class="vault-content">
           <p id="vaultNotice" role="status" hidden></p>
+          <aside class="backup-reminder" id="backupReminder" aria-label="Recordatorio de copia cifrada" hidden>
+            <p>Descarga una copia cifrada y guárdala en otro lugar. Conviene renovarla al menos cada 30 días.</p>
+            <button class="secondary-button" id="backupReminderExport" type="button">Descargar copia cifrada</button>
+          </aside>
           <section class="rekey-recovery" id="rekeyRecovery" aria-labelledby="rekeyRecoveryTitle" hidden>
             <h3 id="rekeyRecoveryTitle" tabindex="-1">Clave maestra cambiada</h3>
             <p>La copia anterior local y los archivos exportados siguen abriéndose con la clave anterior. Si esa clave quedó expuesta, quien la conozca puede abrir esas copias.</p>

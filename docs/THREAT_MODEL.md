@@ -17,6 +17,10 @@ Entradas, notas y clave maestra frente a la lectura del archivo de bóveda cuand
 - Los metadatos del envoltorio se validan estrictamente; importaciones se descifran y validan antes de reemplazar. Se permiten solo factores KDF conocidos para evitar trabajo arbitrario. El tamaño máximo es 4 MiB y 5.000 entradas.
 - Escrituras usan Web Locks y comparación de versión almacenada. Se rechazan ventanas obsoletas y se bloquea al recibir cambios de almacenamiento.
 
+## Recordatorio de copia cifrada
+
+Al crear, restaurar o cambiar la clave se descarta la fecha anterior del recordatorio de copia. La fecha de la última descarga solicitada se guarda como un instante ISO en `clavelocal.last-export.v1`, fuera de la bóveda, sin rutas ni secretos. El dato local puede borrarse o alterarse y su pérdida solo afecta al aviso. La solicitud de descarga no demuestra que el archivo se haya guardado ni que esté disponible en otro dispositivo.
+
 ## Claves elegidas por el usuario
 
 Al crear una bóveda se exige un mínimo de 12 caracteres visibles (grupos de grafemas) y se detectan claves comunes, estructuras triviales y coincidencias con el nombre de usuario completo. La comprobación usa una lista local pequeña curada por el proyecto y reglas deterministas. Reduce elecciones obvias y no anuncia bits de entropía. Una clave mediocre que pasa el filtro sigue expuesta a un ataque offline si alguien obtiene la bóveda cifrada. El desbloqueo de copias existentes conserva su clave, y guardar una entrada o importar CSV sigue admitiendo contraseñas débiles.
