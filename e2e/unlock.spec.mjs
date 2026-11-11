@@ -3,7 +3,7 @@ import { readFile } from "node:fs/promises";
 const password = "ficticia-pruebas-desbloqueo-123";
 test("desbloquear no escribe y Ayuda descarga la copia previa a editar", async ({ page }) => {
   await page.goto("/");
-  await page.locator("#authUsername").fill("Prueba");
+  await page.locator("#authUsername").fill("Perfil de prueba");
   await page.locator("#masterPassword").fill(password);
   await page.locator("#confirmPassword").fill(password);
   await page.locator("#authSubmit").click();

@@ -6,6 +6,7 @@ import { PROFILE_KEY, normalizeUsername, readCachedProfile, cacheProfile } from 
 import { openSession } from "./session.mjs";
 import { createClipboardCleaner } from "./clipboard.mjs";
 import { createLockPolicy, DEFAULT_SETTINGS, validateSettings } from "./settings.mjs";
+import { assessMasterPassword, describeEntryPassword } from "./strength.mjs";
 const PAGE_SIZE = 10;
 const store = new VaultStore(localStorage);
 let pendingImport = null;
@@ -14,6 +15,7 @@ let session = 0;
 let pendingCsv = null;
 let csvPlan = null;
 let updateInProgress = false;
+let authReadable = false;
 
 const state = {
   key: null,
@@ -39,7 +41,7 @@ const elements = {
   entryDialog: $("#entryDialog"), entryForm: $("#entryForm"), entryDialogTitle: $("#entryDialogTitle"),
   entryId: $("#entryId"), entrySite: $("#entrySite"), entryUsername: $("#entryUsername"),
   entryCategory: $("#entryCategory"), entryPassword: $("#entryPassword"), entryNotes: $("#entryNotes"),
-  entryError: $("#entryError"), entryStrengthFill: $("#entryStrengthFill"), entryStrengthLabel: $("#entryStrengthLabel"),
+  entryError: $("#entryError"), entryStrengthLabel: $("#entryStrengthLabel"),
   generatorDialog: $("#generatorDialog"), generatedPassword: $("#generatedPassword"),
   passwordLength: $("#passwordLength"), lengthValue: $("#lengthValue"), generatorStrengthFill: $("#generatorStrengthFill"),
   generatorStrengthLabel: $("#generatorStrengthLabel"), toast: $("#toast"), importFile: $("#importFile"),
@@ -73,11 +75,13 @@ function configureAuth() {
   let exists;
   try { exists = Boolean(getStoredVault()); }
   catch {
+    authReadable = false;
+    $("#masterPolicy").hidden = true;
     elements.authError.textContent = "No se puede leer la bóveda. Conservamos los datos: abre Ayuda para restaurar una copia válida o revisa el almacenamiento del navegador.";
     elements.authSubmit.disabled = true;
     return;
   }
-  elements.authSubmit.disabled = false;
+  authReadable = true;
   const profile = exists ? readCachedProfile(localStorage) : null;
   $("#authUsernameGroup").hidden = exists;
   $("#authUsername").required = !exists;
@@ -93,21 +97,37 @@ function configureAuth() {
     ? "Introduce tu clave maestra para descifrar tus contraseñas."
     : "Elige tu usuario y una clave maestra para crear tu bóveda local.";
   elements.authSubmit.firstChild.textContent = exists ? "Entrar a mi bóveda " : "Crear perfil y bóveda ";
+  updateAuthPolicy();
+}
+
+function renderMasterAssessment(panel, password, username) {
+  const assessment = assessMasterPassword(password, { username });
+  panel.textContent = assessment.blocked
+    ? assessment.reasons.join(" ")
+    : `Longitud orientativa: ${assessment.level}.`;
+  return assessment;
+}
+
+function updateAuthPolicy() {
+  const panel = $("#masterPolicy");
+  panel.hidden = !authReadable || $("#authUsernameGroup").hidden;
+  const blocked = !panel.hidden && renderMasterAssessment(
+    $("#masterAssessment"), elements.masterPassword.value, $("#authUsername").value,
+  ).blocked;
+  elements.authSubmit.disabled = busy || !authReadable || blocked;
 }
 
 async function handleAuth(event) {
   event.preventDefault();
   elements.authError.textContent = "";
   const password = elements.masterPassword.value;
-  if (busy) return;
-
-  if (password.length < 12) {
-    elements.authError.textContent = "Usa al menos 12 caracteres para tu clave maestra.";
-    return;
-  }
+  if (busy || !authReadable) return;
+  let username;
   if (!$("#authUsernameGroup").hidden) {
-    try { normalizeUsername($("#authUsername").value); }
+    try { username = normalizeUsername($("#authUsername").value); }
     catch (error) { elements.authError.textContent = error.message; return; }
+    const assessment = assessMasterPassword(password, { username });
+    if (assessment.blocked) { elements.authError.textContent = assessment.reasons.join(" "); return; }
     if (password !== elements.confirmPassword.value) { elements.authError.textContent = "Las claves no coinciden."; return; }
   }
   busy = true;
@@ -116,8 +136,8 @@ async function handleAuth(event) {
   try {
     await withStorageLock(async () => {
       const opened = await openSession(store, password, () => {
-        if (password !== elements.confirmPassword.value) throw new Error("Las claves no coinciden.");
-        return { version: 1, entries: [], profile: { version: 1, username: normalizeUsername($("#authUsername").value) } };
+        if (username === undefined) throw new Error("La bóveda ya no está disponible.");
+        return { version: 1, entries: [], profile: { version: 1, username } };
       }, () => generation === session);
       if (generation !== session) throw new Error("Operación cancelada");
       state.key = opened.key;
@@ -137,7 +157,7 @@ async function handleAuth(event) {
     elements.authError.textContent = error.name === "StorageWriteError" ? error.message : "No se pudo abrir o guardar la bóveda. Revisa la clave, la copia y el espacio disponible.";
   } finally {
     busy = false;
-    elements.authSubmit.disabled = false;
+    updateAuthPolicy();
   }
   if (state.key && !state.vault.profile) showProfileDialog();
 }
@@ -342,7 +362,7 @@ function openEntryDialog(entry = null) {
   elements.entryPassword.value = entry?.password || generatePassword();
   elements.entryNotes.value = entry?.notes || "";
   elements.entryDialogTitle.textContent = entry ? "Editar contraseña" : "Nueva contraseña";
-  updateStrength(elements.entryPassword.value, elements.entryStrengthFill, elements.entryStrengthLabel);
+  elements.entryStrengthLabel.textContent = describeEntryPassword(elements.entryPassword.value);
   elements.entryDialog.showModal();
   elements.entrySite.focus();
 }
@@ -711,6 +731,8 @@ function bindEvents() {
     else if (event.key === PROFILE_KEY && !state.key && !state.demo) configureAuth();
   });
   elements.authForm.addEventListener("submit", handleAuth);
+  elements.masterPassword.addEventListener("input", updateAuthPolicy);
+  $("#authUsername").addEventListener("input", updateAuthPolicy);
   elements.lockButton.addEventListener("click", () => lockVault());
   $$("[data-reveal]").forEach((button) => button.addEventListener("click", () => {
     const input = document.getElementById(button.dataset.reveal);
@@ -720,7 +742,9 @@ function bindEvents() {
   $("#newEntryButton").addEventListener("click", () => openEntryDialog());
   $("#emptyNewButton").addEventListener("click", () => openEntryDialog());
   elements.entryForm.addEventListener("submit", saveEntry);
-  elements.entryPassword.addEventListener("input", () => updateStrength(elements.entryPassword.value, elements.entryStrengthFill, elements.entryStrengthLabel));
+  elements.entryPassword.addEventListener("input", () => {
+    elements.entryStrengthLabel.textContent = describeEntryPassword(elements.entryPassword.value);
+  });
   elements.searchInput.addEventListener("input", () => { state.page = 1; renderEntries(); });
   $("#openGeneratorButton").addEventListener("click", openGenerator);
   $("#regenerateButton").addEventListener("click", refreshGeneratedPassword);
@@ -731,7 +755,7 @@ function bindEvents() {
     elements.generatorDialog.close();
     openEntryDialog();
     elements.entryPassword.value = password;
-    updateStrength(password, elements.entryStrengthFill, elements.entryStrengthLabel);
+    elements.entryStrengthLabel.textContent = describeEntryPassword(password);
   });
   elements.passwordLength.addEventListener("input", () => { elements.lengthValue.textContent = elements.passwordLength.value; refreshGeneratedPassword(); });
   $$(".option-grid input").forEach((input) => input.addEventListener("change", refreshGeneratedPassword));

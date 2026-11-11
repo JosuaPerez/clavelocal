@@ -62,6 +62,10 @@
               <input id="masterPassword" type="password" autocomplete="new-password" minlength="12" placeholder="Mínimo 12 caracteres" required>
               <button class="reveal-button" type="button" data-reveal="masterPassword" aria-label="Mostrar clave"><svg viewBox="0 0 24 24"><path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Zm9.5 3a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/></svg></button>
             </div>
+            <div class="password-policy" id="masterPolicy" hidden>
+              <p id="masterAssessment" aria-live="polite"></p>
+              <p>Una frase de cuatro o más palabras al azar suele ser más fácil de recordar que símbolos sueltos. La comprobación solo detecta patrones obvios.</p>
+            </div>
             <div id="confirmGroup">
               <label for="confirmPassword">Confirma tu clave</label>
               <div class="input-wrap">
@@ -221,7 +225,7 @@
           <div><label for="entryUsername">Usuario o correo</label><input id="entryUsername" maxlength="120" autocomplete="off" placeholder="tu@email.com"></div>
           <div><label for="entryCategory">Categoría</label><select id="entryCategory"><option>Personal</option><option>Trabajo</option><option>Finanzas</option><option>Redes</option><option>Otros</option></select></div>
           <div class="span-two"><label for="entryPassword">Contraseña</label><div class="input-wrap"><input id="entryPassword" type="password" autocomplete="new-password" required><button class="reveal-button" type="button" data-reveal="entryPassword" aria-label="Mostrar contraseña"><svg viewBox="0 0 24 24"><path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Zm9.5 3a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/></svg></button></div></div>
-          <div class="span-two strength-line"><span id="entryStrengthFill"></span><small id="entryStrengthLabel">Sin evaluar</small></div>
+          <p class="span-two password-policy" id="entryStrengthLabel" aria-live="polite">Sin evaluar</p>
           <div class="span-two"><label for="entryNotes">Notas</label><textarea id="entryNotes" maxlength="500" rows="3" placeholder="Información opcional"></textarea></div>
         </div>
         <p id="entryError" class="form-error" role="alert"></p>
