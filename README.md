@@ -36,7 +36,7 @@ Abre [la demo pública](https://josuaperez.github.io/clavelocal/). Incluye datos
 2. Descarga el instalador `.exe` de Windows, instálalo para tu usuario y abre ClaveLocal. No necesitas Node.js ni Git.
 3. Crea una clave maestra larga y única y exporta tu copia cifrada.
 
-La versión 0.4 sigue siendo experimental. Todavía no hay firma de editor Authenticode: Windows puede mostrar una advertencia. No desactives las protecciones del sistema para instalarlo. La firma de las actualizaciones se verifica dentro de la app, pero es distinta de la identidad de editor que comprueba Windows.
+La versión 0.5 sigue siendo experimental. Todavía no hay firma de editor Authenticode: Windows puede mostrar una advertencia. No desactives las protecciones del sistema para instalarlo. La firma de las actualizaciones se verifica dentro de la app, pero es distinta de la identidad de editor que comprueba Windows.
 
 Si tienes 0.2, exporta una copia cifrada, cierra ClaveLocal e instala la versión actual manualmente una vez, con el mismo usuario de Windows, sin borrar datos. Desde 0.3 aparece **Buscar actualizaciones**. Solo los releases publicados se ofrecen como actualizaciones; subir un commit no actualiza las instalaciones.
 

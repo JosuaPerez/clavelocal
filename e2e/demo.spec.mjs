@@ -4,8 +4,8 @@ test("demo pública aislada y enlace coherente con el canal de actualización", 
   const response = await request.get("http://127.0.0.1:4174/updates/windows.json");
   await expect(response).toBeOK();
   const feed = await response.json();
-  expect(feed.version).toBe("0.4.0");
-  expect(feed.platforms["windows-x86_64"].url).toBe("https://github.com/JosuaPerez/clavelocal/releases/download/v0.4.0/ClaveLocal_0.4.0_x64-setup.exe");
+  expect(feed.version).toBe("0.5.0");
+  expect(feed.platforms["windows-x86_64"].url).toBe("https://github.com/JosuaPerez/clavelocal/releases/download/v0.5.0/ClaveLocal_0.5.0_x64-setup.exe");
   await expect(page.getByRole("link", { name: "Descargar para Windows" })).toHaveAttribute("href", feed.platforms["windows-x86_64"].url);
   await page.getByRole("link", { name: "Probar demo" }).click();
   await expect(page.locator("#authForm")).toBeHidden();
