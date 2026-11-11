@@ -1,11 +1,11 @@
 {
-  "version": "0.4.0",
-  "notes": "ClaveLocal 0.4.0 experimental para Windows x64: apertura sin reescrituras innecesarias, copias más fiables, ajustes de bloqueo cifrados y limpieza del portapapeles independiente del bloqueo. Se corrigió la reapertura de importaciones CSV. Exporta una copia cifrada antes de actualizar y conserva tu clave maestra.",
-  "pub_date": "2026-11-10T22:39:21.443Z",
+  "version": "0.5.0",
+  "notes": "0.5.0: cinco contraseñas por página con navegación al final, ventana de actualizaciones más compacta, cambio de clave maestra y recordatorio de copia cifrada.",
+  "pub_date": "2026-11-11T23:03:13.839Z",
   "platforms": {
     "windows-x86_64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSZDJFbFpQYU9aSDlGeVlmZ01mT2psZ3prYnRpWGxOVXplNVltVXNtNEZ4Qm9hMVJUMmF1bkxSdkFRR3RlZkV1dWtOSnYvRkhHNTN1Qlg0NjhUT0haOC9BNmt5WWg5NlFJPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzk0MzUwMzU5CWZpbGU6Q2xhdmVMb2NhbF8wLjQuMF94NjQtc2V0dXAuZXhlCXZlcnNpb246MC40LjAKS21PeUUwb3I0TEltUndNRy9MZWZVWkQ1WUIzZ1RjRjMyN1lCYlZDRnhyczJrMWtoR3RmTHNpMDk5TWp2M3M4eGhPZk5rVlFCbzFuaFJmcSt2c1N4QkE9PQo=",
-      "url": "https://github.com/JosuaPerez/clavelocal/releases/download/v0.4.0/ClaveLocal_0.4.0_x64-setup.exe"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSZDJFbFpQYU9aSHpjdVhKc1JmemNGK0pxc1ZndElqVFFCN2RVbjliNzNuR2xqNld6TVlueU5GbHpES24rSEN3ZlpwY0I0MXRiNDZ6UlFPb3pTU3orQmhkZFJxR2V5dHdjPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzk0NDM4MTkyCWZpbGU6Q2xhdmVMb2NhbF8wLjUuMF94NjQtc2V0dXAuZXhlCXZlcnNpb246MC41LjAKeWQrUDh5T1drRytVZTIxTEc5eldCNEw5VHpYU3pTdzNZWWpmTm1ndmJkOUtIbjRSLzh1VWVkTFoyaEVBbzNmaTRlc25lY3E2RnhPeW1SOXoxZkZDQ0E9PQo=",
+      "url": "https://github.com/JosuaPerez/clavelocal/releases/download/v0.5.0/ClaveLocal_0.5.0_x64-setup.exe"
     }
   }
 }
