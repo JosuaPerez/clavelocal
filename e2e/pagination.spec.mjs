@@ -17,52 +17,53 @@ async function openLargeVault(page) {
   await expect(page.locator("#vaultView")).toBeVisible();
 }
 
-test("500 contraseñas: máximo 10 por página; búsqueda global y categorías reinician la página", async ({ page }) => {
+test("500 contraseñas: cinco por página y un solo control debajo de la lista", async ({ page }) => {
   await openLargeVault(page);
-  const top = page.locator("#entryPagination");
-  await expect(page.locator(".entry-card")).toHaveCount(10);
-  await expect(top).toContainText("1–10 de 500 · Página 1 de 50");
-  await expect(top.locator('[data-page-step="-1"]')).toBeDisabled();
-  await top.locator('[data-page-step="1"]').click();
-  await expect(top).toContainText("11–20 de 500 · Página 2 de 50");
-  await expect(page.locator("#entryList")).toContainText("Sitio 010");
+  const bottom = page.locator("#entryList + #entryPaginationBottom");
+  await expect(page.locator(".entry-pagination")).toHaveCount(1);
+  await expect(page.locator(".entry-card")).toHaveCount(5);
+  await expect(bottom).toContainText("1–5 de 500 · Página 1 de 100");
+  await expect(bottom.locator('[data-page-step="-1"]')).toBeDisabled();
+  await bottom.locator('[data-page-step="1"]').click();
+  await expect(bottom).toContainText("6–10 de 500 · Página 2 de 100");
+  await expect(page.locator("#entryList")).toBeFocused();
+  await expect(page.locator("#entryList")).toContainText("Sitio 005");
   await expect(page.locator("#entryList")).not.toContainText("Sitio 000");
   await page.locator("#searchInput").fill("Sitio 499");
   await expect(page.locator(".entry-card")).toHaveCount(1);
-  await expect(top).toContainText("1–1 de 1 · Página 1 de 1");
-  await expect(top.locator('[data-page-step="1"]')).toBeDisabled();
+  await expect(bottom).toContainText("1–1 de 1 · Página 1 de 1");
+  await expect(bottom.locator('[data-page-step="1"]')).toBeHidden();
   await page.locator("#searchInput").fill("");
-  await expect(top).toContainText("Página 1 de 50");
+  await expect(bottom).toContainText("Página 1 de 100");
   await page.locator("#categoryNav button").filter({ hasText: "Trabajo" }).click();
-  await expect(top).toContainText("1–10 de 90 · Página 1 de 9");
-  await top.locator('[data-page-step="1"]').click();
-  await expect(page.locator("#entryList")).toContainText("Sitio 410");
+  await expect(bottom).toContainText("1–5 de 90 · Página 1 de 18");
+  await bottom.locator('[data-page-step="1"]').click();
+  await expect(page.locator("#entryList")).toContainText("Sitio 405");
   await page.locator("#categoryNav button").filter({ hasText: "Finanzas" }).click();
-  await expect(top).toContainText("Página 1 de 1");
-  await expect(page.locator(".entry-card")).toHaveCount(10);
+  await expect(bottom).toContainText("Página 1 de 2");
+  await expect(page.locator(".entry-card")).toHaveCount(5);
   await page.locator("#categoryNav button").filter({ hasText: "Redes" }).click();
-  await expect(top).toBeHidden();
+  await expect(bottom).toBeHidden();
   await expect(page.locator("#emptyStateTitle")).toHaveText("No hay coincidencias");
   await page.locator('[data-view="all"]').click();
   await page.screenshot({ path: "work/vault-paginated.png", fullPage: true });
   await page.locator("#lockButton").click();
-  await expect(top).toBeHidden();
-  await expect(top.locator(".page-summary")).toBeEmpty();
+  await expect(bottom).toBeHidden();
+  await expect(bottom.locator(".page-summary")).toBeEmpty();
 });
 
 test("eliminar la única entrada de la última página retrocede a la página válida anterior", async ({ page }) => {
   await openLargeVault(page);
   await page.locator('[data-view="favorites"]').click();
-  const top = page.locator("#entryPagination");
-  await top.locator('[data-page-step="1"]').click();
-  await page.locator('#entryPaginationBottom [data-page-step="1"]').click();
+  const bottom = page.locator("#entryPaginationBottom");
+  for (let i = 0; i < 4; i += 1) await bottom.locator('[data-page-step="1"]').click();
   await expect(page.locator(".entry-card")).toHaveCount(1);
-  await expect(top).toContainText("21–21 de 21 · Página 3 de 3");
+  await expect(bottom).toContainText("21–21 de 21 · Página 5 de 5");
   page.once("dialog", (dialog) => dialog.accept());
   await page.getByRole("button", { name: "Eliminar", exact: true }).click();
-  await expect(top).toContainText("11–20 de 20 · Página 2 de 2");
-  await expect(page.locator(".entry-card")).toHaveCount(10);
-  await expect(top.locator('[data-page-step="1"]')).toBeDisabled();
+  await expect(bottom).toContainText("16–20 de 20 · Página 4 de 4");
+  await expect(page.locator(".entry-card")).toHaveCount(5);
+  await expect(bottom.locator('[data-page-step="1"]')).toBeDisabled();
 });
 
 test("acceso limpio, demo centrada y restauración disponible desde Ayuda", async ({ page }) => {

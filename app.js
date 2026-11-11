@@ -7,7 +7,7 @@ import { openSession, rekeySession, RekeyVerificationError } from "./session.mjs
 import { createClipboardCleaner } from "./clipboard.mjs";
 import { createLockPolicy, DEFAULT_SETTINGS, validateSettings } from "./settings.mjs";
 import { assessMasterPassword, describeEntryPassword } from "./strength.mjs";
-const PAGE_SIZE = 10;
+const PAGE_SIZE = 5;
 const LAST_EXPORT_KEY = "clavelocal.last-export.v1";
 const EXPORT_REMINDER_MS = 30 * 24 * 60 * 60 * 1000;
 const store = new VaultStore(localStorage);
@@ -191,6 +191,7 @@ function lockVault(message = "Bóveda bloqueada") {
   $("#vaultNotice").textContent = "";
   $("#vaultNotice").hidden = true;
   $("#backupReminder").hidden = true;
+  $("#updateExportButton").hidden = true;
   state.vault = { version: 1, entries: [] };
   state.page = 1;
   lockPolicy.stop();
@@ -217,7 +218,8 @@ function lockVault(message = "Bóveda bloqueada") {
   for (const id of ["masterPassword", "confirmPassword", "entryPassword"]) document.getElementById(id).type = "password";
   elements.generatedPassword.textContent = "";
   elements.entryList.replaceChildren();
-  $$(".entry-pagination").forEach((pagination) => { pagination.hidden = true; pagination.querySelector(".page-summary").textContent = ""; });
+  $("#entryPaginationBottom").hidden = true;
+  $("#entryPaginationBottom .page-summary").textContent = "";
   elements.categoryNav.replaceChildren();
   elements.searchInput.value = "";
   elements.allCount.textContent = "0";
@@ -426,12 +428,12 @@ function renderEntries() {
   $("#emptyStateTitle").textContent = state.vault.entries.length ? "No hay coincidencias" : "Tu bóveda está esperando";
   $("#emptyStateDescription").textContent = state.vault.entries.length ? "Prueba otra búsqueda o categoría." : "Crea tu primera contraseña segura y tenla siempre a mano.";
   $("#emptyNewButton").hidden = state.vault.entries.length > 0;
-  for (const pagination of $$(".entry-pagination")) {
-    pagination.hidden = filtered.length === 0;
-    pagination.querySelector(".page-summary").textContent = filtered.length ? `${start + 1}–${Math.min(start + PAGE_SIZE, filtered.length)} de ${filtered.length} · Página ${state.page} de ${pageCount}` : "";
-    pagination.querySelector('[data-page-step="-1"]').disabled = state.page === 1;
-    pagination.querySelector('[data-page-step="1"]').disabled = state.page === pageCount;
-  }
+  const pagination = $("#entryPaginationBottom");
+  pagination.hidden = filtered.length === 0;
+  pagination.querySelector(".page-summary").textContent = filtered.length ? `${start + 1}–${Math.min(start + PAGE_SIZE, filtered.length)} de ${filtered.length} · Página ${state.page} de ${pageCount}` : "";
+  pagination.querySelector(".page-actions").hidden = pageCount === 1;
+  pagination.querySelector('[data-page-step="-1"]').disabled = state.page === 1;
+  pagination.querySelector('[data-page-step="1"]').disabled = state.page === pageCount;
   elements.allCount.textContent = String(state.vault.entries.length);
   elements.favoriteCount.textContent = String(state.vault.entries.filter((entry) => entry.favorite).length);
   renderCategoryNav();
@@ -839,7 +841,8 @@ function bindEvents() {
     if (button.disabled || (!state.key && !state.demo)) return;
     state.page += Number(button.dataset.pageStep);
     renderEntries();
-    $("#entryPagination").scrollIntoView({ block: "start", behavior: "auto" });
+    elements.entryList.focus({ preventScroll: true });
+    elements.entryList.scrollIntoView({ block: "start", behavior: "auto" });
   }));
   $("#profileButton").addEventListener("click", showProfileDialog);
   $("#profileForm").addEventListener("submit", saveProfile);
@@ -920,34 +923,64 @@ function bindEvents() {
 function setupUpdater() {
   const invoke = window.__TAURI__?.core?.invoke;
   if (!invoke || document.documentElement.dataset.mode === "demo") return;
-  $("#checkUpdatesButton").hidden = false;
-  $("#checkUpdatesButton").addEventListener("click", async () => {
+  const trigger = $("#checkUpdatesButton");
+  const dialog = $("#updateDialog");
+  const status = $("#updateStatus");
+  const options = $("#updateInstallOptions");
+  const changes = $("#updateChanges");
+  const notes = $("#updateNotes");
+  const backup = $("#updateBackupAck");
+  const exportButton = $("#updateExportButton");
+  const install = $("#installUpdateButton");
+  const retry = $("#retryUpdateButton");
+  const close = $("#closeUpdateButton");
+
+  function showUpdateState(phase, message, releaseNotes = "") {
+    const available = phase === "available";
+    status.textContent = message;
+    options.hidden = !available;
+    changes.hidden = !releaseNotes;
+    changes.open = false;
+    notes.textContent = releaseNotes;
+    backup.checked = false;
+    exportButton.hidden = !state.key || state.demo;
+    install.hidden = !available;
+    install.disabled = true;
+    retry.hidden = phase !== "error";
+    close.disabled = phase === "installing";
+  }
+
+  async function check() {
     if (busy || updateInProgress) { showToast("Termina la operación actual antes de buscar actualizaciones."); return; }
     updateInProgress = true;
-    $("#updateBackupAck").checked = false;
-    $("#installUpdateButton").hidden = true;
-    $("#updateNotes").textContent = "";
-    $("#updateStatus").textContent = "Buscando una versión publicada…";
-    $("#updateDialog").showModal();
+    showUpdateState("checking", "Buscando actualizaciones…");
+    if (!dialog.open) dialog.showModal();
+    else close.focus();
     try {
       const update = await invoke("check_update");
-      $("#updateStatus").textContent = update ? `Nueva versión disponible: ${update.version}` : "Tienes la versión más reciente publicada en este canal.";
-      $("#updateNotes").textContent = update?.notes || "";
-      $("#installUpdateButton").hidden = !update;
-    } catch (error) { $("#updateStatus").textContent = String(error); }
+      if (update) showUpdateState("available", `Versión ${update.version} disponible`, update.notes || "");
+      else showUpdateState("current", "ClaveLocal está al día.");
+    } catch (error) { showUpdateState("error", String(error)); }
     finally { updateInProgress = false; }
-  });
-  $("#installUpdateButton").addEventListener("click", async () => {
-    if (busy || updateInProgress) return;
-    if (!$("#updateBackupAck").checked) { $("#updateStatus").textContent = "Exporta una copia cifrada y marca la confirmación antes de actualizar."; return; }
-    if (!confirm("¿Descargar la versión firmada, cerrar ClaveLocal e instalarla? La bóveda se conservará en este usuario de Windows.")) return;
+  }
+
+  trigger.hidden = false;
+  trigger.addEventListener("click", check);
+  retry.addEventListener("click", check);
+  exportButton.addEventListener("click", exportVault);
+  backup.addEventListener("change", () => { install.disabled = !backup.checked; });
+  dialog.addEventListener("cancel", (event) => { if (close.disabled) event.preventDefault(); });
+  install.addEventListener("click", async () => {
+    if (busy || updateInProgress || !dialog.open || options.hidden || !backup.checked) return;
     updateInProgress = true;
     lockVault("Bóveda bloqueada para actualizar");
-    $("#installUpdateButton").disabled = true;
-    $("#updateStatus").textContent = "Descargando y verificando la firma…";
-    try { await invoke("install_update"); }
-    catch (error) { $("#updateStatus").textContent = String(error); }
-    finally { updateInProgress = false; $("#installUpdateButton").disabled = false; }
+    showUpdateState("installing", "Descargando y verificando la firma…");
+    status.focus();
+    try {
+      await invoke("install_update");
+      showUpdateState("installed", "Actualización instalada. Reiniciando ClaveLocal…");
+    } catch (error) { showUpdateState("error", String(error)); }
+    finally { updateInProgress = false; }
   });
 }
 

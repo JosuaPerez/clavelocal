@@ -4,7 +4,7 @@
 
 La versión 0.2 no contiene actualizador: ciérrala e instala la versión actual manualmente una vez, usando el mismo usuario de Windows. Exporta antes una copia cifrada y conserva tu clave maestra. El identificador de aplicación se mantiene, por lo que una actualización normal conserva los datos locales; no desinstales ni selecciones borrar datos.
 
-Desde 0.3, el botón **Buscar actualizaciones** consulta el canal publicado. No consulta ni transmite la bóveda. Primero muestra la versión y sus notas. Solo tras tu confirmación y la declaración de tener una copia cifrada descarga, autentica el archivo y ejecuta el instalador. Un error de conexión no impide usar la app sin conexión.
+Desde 0.3, el botón **Buscar actualizaciones** consulta el canal publicado. No consulta ni transmite la bóveda. Si hay una versión nueva, puedes leer sus notas en **Ver novedades**. Con la bóveda abierta puedes descargar una copia cifrada desde la misma ventana. Marca la confirmación de copia y pulsa **Instalar y reiniciar** para descargar y verificar el archivo antes de ejecutar el instalador. Si falla la comprobación o la instalación, usa **Volver a buscar**. Puedes seguir usando la app sin conexión.
 
 Los commits y los PR de GitHub no son actualizaciones instalables. Solo se anuncia una versión después de compilarla, verificarla, firmarla y publicarla por el responsable.
 
