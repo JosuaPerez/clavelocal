@@ -4,6 +4,8 @@ Todos los cambios importantes se documentarán aquí siguiendo un esquema inspir
 
 ## [Sin publicar]
 
+- Pruebas de consistencia entre los módulos de la app, el servidor y el empaquetado; escaneo ampliado a módulos transitivos.
+
 ## [0.4.0] - 2026-11-10
 
 - Versión experimental con las mejoras integradas de seguridad, recuperación y bloqueo.
