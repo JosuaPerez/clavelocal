@@ -4,6 +4,7 @@ Todos los cambios importantes se documentarán aquí siguiendo un esquema inspir
 
 ## [Sin publicar]
 
+- Recordatorio de copia cifrada tras 30 días sin solicitar una descarga de la bóveda actual.
 - ADR de almacenamiento de escritorio con alternativas, propuesta de migración y plan de pruebas, pendiente de decisión del propietario.
 - Cambio de clave maestra con salt nuevo, verificación de escritura y opciones para exportar la bóveda actual o eliminar explícitamente la copia local anterior.
 - Comprobación de claves maestras al crear una bóveda y etiquetas cualitativas para las contraseñas de entradas.

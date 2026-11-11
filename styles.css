@@ -109,6 +109,8 @@ textarea { resize: vertical; }
 .rekey-recovery h3 { margin: 0; }
 .rekey-recovery p { color: var(--muted); font-size: .8rem; line-height: 1.5; }
 .rekey-recovery p:empty { display: none; }
+.backup-reminder { border: 1px solid var(--line); border-radius: 12px; padding: 12px 16px; margin-bottom: 18px; }
+.backup-reminder p { color: var(--muted); font-size: .8rem; margin: 0 0 8px; }
 .microcopy { display: flex; align-items: center; justify-content: center; gap: 7px; color: #687285; font-size: .67rem; margin: 22px 0 0; text-align: center; }
 .microcopy svg { width: 14px; height: 14px; }
 
