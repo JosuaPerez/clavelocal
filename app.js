@@ -3,7 +3,7 @@
 import { STORAGE_KEY, MAX_FILE_BYTES, VaultStore, randomBytes, deriveKey, encryptVault, openVault, validateEnvelope } from "./vault.mjs";
 import { parseCsv, planCsvImport } from "./csv.mjs";
 import { PROFILE_KEY, normalizeUsername, readCachedProfile, cacheProfile } from "./profile.mjs";
-import { openSession } from "./session.mjs";
+import { openSession, rekeySession, RekeyVerificationError } from "./session.mjs";
 import { createClipboardCleaner } from "./clipboard.mjs";
 import { createLockPolicy, DEFAULT_SETTINGS, validateSettings } from "./settings.mjs";
 import { assessMasterPassword, describeEntryPassword } from "./strength.mjs";
@@ -16,6 +16,7 @@ let pendingCsv = null;
 let csvPlan = null;
 let updateInProgress = false;
 let authReadable = false;
+let rekeyPrevious = null;
 
 const state = {
   key: null,
@@ -172,6 +173,7 @@ function unlockUi() {
   renderProfile();
   renderEntries();
   $("#settingsButton").disabled = state.demo;
+  $("#changeKeyButton").disabled = state.demo;
   lockPolicy.start(state.vault.settings || DEFAULT_SETTINGS, document.hidden);
 }
 
@@ -188,6 +190,12 @@ function lockVault(message = "Bóveda bloqueada") {
   $("#settingsDialog").close();
   $("#settingsForm").reset();
   $("#settingsError").textContent = "";
+  $("#changeKeyDialog").close();
+  resetChangeKeyDialog();
+  rekeyPrevious = null;
+  $("#rekeyRecovery").hidden = true;
+  $("#rekeyDeletePrevious").disabled = true;
+  $("#rekeyRecoveryStatus").textContent = "";
   elements.entryForm.reset();
   elements.authForm.reset();
   $("#profileForm").reset();
@@ -248,6 +256,98 @@ async function saveSettings(event) {
     $("#settingsDialog").close();
     showToast("Ajustes de bloqueo guardados y cifrados.");
   } catch (error) { if (state.key) $("#settingsError").textContent = error.message; }
+}
+
+function updateChangeKeyPolicy() {
+  const assessment = renderMasterAssessment(
+    $("#changeKeyAssessment"), $("#nextKey").value, state.vault.profile?.username,
+  );
+  $("#saveChangeKey").disabled = busy || assessment.blocked;
+  return assessment;
+}
+
+function resetChangeKeyDialog() {
+  $("#changeKeyForm").reset();
+  $("#changeKeyFields").disabled = false;
+  $("#changeKeyError").textContent = "";
+  $("#changeKeyAssessment").textContent = "";
+  $("#saveChangeKey").disabled = true;
+  for (const id of ["currentKey", "nextKey", "confirmKey"]) document.getElementById(id).type = "password";
+}
+
+function showChangeKey() {
+  if (!state.key || state.demo || busy) return;
+  resetChangeKeyDialog();
+  updateChangeKeyPolicy();
+  $("#changeKeyDialog").showModal();
+  $("#currentKey").focus();
+}
+
+async function saveChangeKey(event) {
+  event.preventDefault();
+  const dialog = $("#changeKeyDialog");
+  if (!state.key || state.demo || busy || !dialog.open) return;
+  const errorText = $("#changeKeyError");
+  errorText.textContent = "";
+  const assessment = updateChangeKeyPolicy();
+  if (assessment.blocked) { errorText.textContent = assessment.reasons.join(" "); return; }
+  const current = $("#currentKey").value;
+  const next = $("#nextKey").value;
+  if (next !== $("#confirmKey").value) { errorText.textContent = "Las claves nuevas no coinciden."; return; }
+
+  busy = true;
+  $("#changeKeyFields").disabled = true;
+  $("#saveChangeKey").disabled = true;
+  const generation = session;
+  const isUnlocked = () => generation === session && Boolean(state.key);
+  try {
+    await withStorageLock(() => rekeySession(store, {
+      current, next, vault: state.vault,
+      isCurrent: () => isUnlocked() && dialog.open,
+      onCommit: ({ key, salt, iterations, previous }) => {
+        state.key = key;
+        state.salt = salt;
+        state.iterations = iterations;
+        rekeyPrevious = previous;
+      },
+    }));
+    if (!isUnlocked()) return;
+    dialog.close();
+    resetChangeKeyDialog();
+    $("#rekeyRecoveryStatus").textContent = "";
+    $("#rekeyRecovery").hidden = false;
+    $("#rekeyDeletePrevious").disabled = rekeyPrevious === null;
+    $("#rekeyRecoveryTitle").focus();
+    showToast("Clave maestra cambiada.");
+  } catch (error) {
+    if (!isUnlocked()) return;
+    if (error instanceof RekeyVerificationError) lockVault(error.message);
+    else if (dialog.open) errorText.textContent = error.message;
+  } finally {
+    busy = false;
+    $("#changeKeyFields").disabled = false;
+    if (dialog.open) updateChangeKeyPolicy();
+    if (!state.key) updateAuthPolicy();
+  }
+}
+
+async function deleteRekeyBackup() {
+  if (!state.key || busy || rekeyPrevious === null) return;
+  const previous = rekeyPrevious;
+  const generation = session;
+  if (!confirm("Eliminar esta copia anterior local es irreversible. Los archivos exportados fuera de ClaveLocal se conservan. ¿Eliminar la copia local?")) return;
+  if (generation !== session || busy) return;
+  try {
+    await withStorageLock(() => {
+      if (generation !== session || !state.key || busy) return;
+      store.removePreviousBackup(previous);
+      rekeyPrevious = null;
+      $("#rekeyDeletePrevious").disabled = true;
+      $("#rekeyRecoveryStatus").textContent = "Copia anterior local eliminada.";
+    });
+  } catch (error) {
+    if (generation === session && state.key) $("#rekeyRecoveryStatus").textContent = error.message;
+  }
 }
 
 function createButton(label, iconPath, handler, className = "") {
@@ -692,6 +792,15 @@ function bindEvents() {
   $("#settingsButton").addEventListener("click", showSettings);
   $("#settingsForm").addEventListener("submit", saveSettings);
   $("#cancelSettings").addEventListener("click", () => $("#settingsDialog").close());
+  $("#changeKeyButton").addEventListener("click", showChangeKey);
+  $("#changeKeyForm").addEventListener("submit", saveChangeKey);
+  $("#nextKey").addEventListener("input", updateChangeKeyPolicy);
+  $("#cancelChangeKey").addEventListener("click", () => { $("#changeKeyDialog").close(); resetChangeKeyDialog(); });
+  $("#changeKeyDialog").addEventListener("close", () => {
+    if (!$("#changeKeyDialog").open) resetChangeKeyDialog();
+  });
+  $("#rekeyExport").addEventListener("click", () => { if (state.key && !busy) exportVault(); });
+  $("#rekeyDeletePrevious").addEventListener("click", deleteRekeyBackup);
   $("#helpButton").addEventListener("click", () => $("#helpDialog").showModal());
   $("#closeHelp").addEventListener("click", () => $("#helpDialog").close());
   $$("[data-page-step]").forEach((button) => button.addEventListener("click", () => {

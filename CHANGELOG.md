@@ -4,6 +4,7 @@ Todos los cambios importantes se documentarán aquí siguiendo un esquema inspir
 
 ## [Sin publicar]
 
+- Cambio de clave maestra con salt nuevo, verificación de escritura y opciones para exportar la bóveda actual o eliminar explícitamente la copia local anterior.
 - Comprobación de claves maestras al crear una bóveda y etiquetas cualitativas para las contraseñas de entradas.
 - El servidor local avisa si su puerto está ocupado y falla antes de abrir el navegador; añade cabeceras COOP y CORP.
 - Pruebas de consistencia entre los módulos de la app, el servidor y el empaquetado; escaneo ampliado a módulos transitivos.

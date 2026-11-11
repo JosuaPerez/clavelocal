@@ -21,6 +21,12 @@ Entradas, notas y clave maestra frente a la lectura del archivo de bóveda cuand
 
 Al crear una bóveda se exige un mínimo de 12 caracteres visibles (grupos de grafemas) y se detectan claves comunes, estructuras triviales y coincidencias con el nombre de usuario completo. La comprobación usa una lista local pequeña curada por el proyecto y reglas deterministas. Reduce elecciones obvias y no anuncia bits de entropía. Una clave mediocre que pasa el filtro sigue expuesta a un ataque offline si alguien obtiene la bóveda cifrada. El desbloqueo de copias existentes conserva su clave, y guardar una entrada o importar CSV sigue admitiendo contraseñas débiles.
 
+## Cambio de clave maestra
+
+Cambiar la clave requiere una bóveda abierta, verificar la clave actual contra la versión que conoce esa sesión y aplicar el filtro de creación a la clave nueva. Se cifra la bóveda completa (incluidos perfil y ajustes) con un salt nuevo y 600.000 iteraciones, incluso si la sesión venía de una migración fallida. Bajo el Web Lock se comprueba la vigencia de la sesión, se escribe con el compare-and-swap habitual, se comprueba la lectura del mismo contenido y se activa la clave nueva en la sesión en el mismo tramo síncrono. Bloquear o cancelar antes de escribir detiene la operación. Si se bloquea inmediatamente después de guardar, ya rige la clave nueva. Si no puede verificarse la lectura posterior, se bloquea y se avisa que el resultado no pudo confirmarse.
+
+La rotación mantiene en `.previous` el envoltorio anterior. Esa copia y las exportaciones hechas con la clave anterior siguen expuestas si alguien conoce o adivina esa clave. Tras cambiarla se ofrece descargar una copia nueva y eliminar explícitamente la copia local que dejó la rotación. La eliminación comprueba que sea la misma copia bajo el Web Lock, pide confirmación y no afecta a archivos externos ni garantiza borrado físico. Las escrituras posteriores pueden rotar `.previous` de nuevo. La rotación no remedia una copia previamente robada ni protege frente a malware en el equipo.
+
 ## Aplicación y distribución
 
 El escritorio empaqueta recursos locales con Tauri, sin APIs genéricas de shell, archivos ni HTTP expuestas al contenido web. La bóveda usa almacenamiento cifrado del WebView del usuario. La CSP no autoriza scripts remotos; en escritorio admite únicamente el IPC nativo requerido por dos comandos de actualización y `copy_secret`. La web pública es una demo separada, sin formularios habilitados para secretos reales; no distribuye la app real por HTTP.
