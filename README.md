@@ -16,7 +16,7 @@ ClaveLocal nace de una idea sencilla: una herramienta de contraseñas debería s
 - Bóveda cifrada con AES-256-GCM.
 - Derivación de clave con PBKDF2-SHA-256 y 600.000 iteraciones; migración de bóvedas antiguas después de autenticarlas.
 - Búsqueda, categorías y favoritos.
-- Listas de 10 entradas por página, con Anterior/Siguiente y búsqueda sobre todos los resultados de la categoría seleccionada.
+- Listas de cinco entradas por página, con Anterior y Siguiente debajo de la lista y búsqueda sobre todos los resultados de la categoría seleccionada.
 - Copia rápida y limpieza del portapapeles después de 30 segundos cuando el navegador lo permite.
 - Bloqueo automático: 5 minutos sin actividad e inmediato al ocultar por defecto; desde Ajustes de bloqueo se pueden elegir otros plazos.
 - Exportación e importación de copias cifradas.

@@ -136,13 +136,9 @@
             <button class="generator-shortcut" id="openGeneratorButton" type="button"><span>✦</span> Generador</button>
           </div>
 
-          <nav id="entryPagination" class="entry-pagination" aria-label="Páginas de contraseñas" hidden>
-            <span class="page-summary" role="status" aria-live="polite"></span>
-            <div class="page-actions"><button type="button" class="secondary-button" data-page-step="-1" aria-controls="entryList">← Anterior</button><button type="button" class="secondary-button" data-page-step="1" aria-controls="entryList">Siguiente →</button></div>
-          </nav>
-          <div id="entryList" class="entry-list" aria-live="polite"></div>
-          <nav id="entryPaginationBottom" class="entry-pagination" aria-label="Páginas de contraseñas, al final de la lista" hidden>
-            <span class="page-summary" aria-hidden="true"></span>
+          <div id="entryList" class="entry-list" aria-live="polite" tabindex="-1"></div>
+          <nav id="entryPaginationBottom" class="entry-pagination" aria-label="Páginas de contraseñas" hidden>
+            <span class="page-summary" role="status"></span>
             <div class="page-actions"><button type="button" class="secondary-button" data-page-step="-1" aria-controls="entryList">← Anterior</button><button type="button" class="secondary-button" data-page-step="1" aria-controls="entryList">Siguiente →</button></div>
           </nav>
           <div id="emptyState" class="empty-state">
@@ -218,14 +214,26 @@
       </form>
     </dialog>
 
-    <dialog id="updateDialog" class="app-dialog">
+    <dialog id="updateDialog" class="app-dialog update-dialog" aria-labelledby="updateTitle">
       <form method="dialog">
-        <h2>Actualizar ClaveLocal</h2>
-        <p id="updateStatus" role="status"></p>
-        <p id="updateNotes"></p>
-        <p>La comprobación consulta la versión pública en GitHub. No envía contraseñas ni el contenido de tu bóveda. Instalar cerrará la app; exporta primero una copia cifrada. La firma se verificará antes de ejecutar el instalador.</p>
-        <label><input id="updateBackupAck" type="checkbox"> Tengo una copia cifrada reciente de mi bóveda.</label>
-        <div class="dialog-actions"><button class="secondary-button" value="cancel">Cerrar</button><button id="installUpdateButton" class="primary-button" type="button" hidden>Actualizar y reiniciar</button></div>
+        <h2 id="updateTitle">Actualizaciones</h2>
+        <p id="updateStatus" role="status" tabindex="-1"></p>
+        <div id="updateInstallOptions" hidden>
+          <details id="updateChanges" hidden>
+            <summary>Ver novedades</summary>
+            <p id="updateNotes"></p>
+          </details>
+          <div class="update-backup">
+            <p>ClaveLocal verificará la firma antes de instalar y reiniciarse.</p>
+            <button id="updateExportButton" class="text-button" type="button" hidden>Descargar copia cifrada</button>
+            <label for="updateBackupAck"><input id="updateBackupAck" type="checkbox"> Tengo una copia cifrada reciente.</label>
+          </div>
+        </div>
+        <div class="dialog-actions">
+          <button id="closeUpdateButton" class="secondary-button" value="cancel" autofocus>Cerrar</button>
+          <button id="retryUpdateButton" class="secondary-button" type="button" hidden>Volver a buscar</button>
+          <button id="installUpdateButton" class="primary-button" type="button" hidden disabled>Instalar y reiniciar</button>
+        </div>
       </form>
     </dialog>
 

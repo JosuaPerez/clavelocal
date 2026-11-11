@@ -4,6 +4,9 @@ Todos los cambios importantes se documentarán aquí siguiendo un esquema inspir
 
 ## [Sin publicar]
 
+- Ventana de actualizaciones más compacta, con confirmación de copia solo al instalar y opción de volver a buscar tras un error.
+- Cinco contraseñas por página, con los controles de navegación al final de la lista.
+
 - Recordatorio de copia cifrada tras 30 días sin solicitar una descarga de la bóveda actual.
 - ADR de almacenamiento de escritorio con alternativas, propuesta de migración y plan de pruebas, pendiente de decisión del propietario.
 - Cambio de clave maestra con salt nuevo, verificación de escritura y opciones para exportar la bóveda actual o eliminar explícitamente la copia local anterior.

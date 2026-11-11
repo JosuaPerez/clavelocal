@@ -34,8 +34,7 @@ button:disabled { opacity: .5; cursor: not-allowed; }
 .help-content > p { color: var(--muted); line-height: 1.6; font-size: .86rem; }
 .help-content > a { color: var(--accent); font-size: .85rem; }
 .recovery-actions { display: flex; flex-wrap: wrap; gap: 12px; margin: 24px 0; }
-.entry-pagination { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 0; margin-bottom: 8px; }
-#entryPaginationBottom { margin-top: 10px; margin-bottom: 0; }
+.entry-pagination { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 0; margin-top: 10px; }
 .page-summary { color: var(--muted); font-size: .76rem; }
 .page-actions { display: flex; gap: 8px; }
 .page-actions button { padding: 9px 12px; font-size: .75rem; }
@@ -157,6 +156,19 @@ textarea { resize: vertical; }
 .app-dialog { width: min(620px, calc(100% - 30px)); max-height: calc(100vh - 30px); overflow: auto; color: var(--text); background: var(--panel-solid); border: 1px solid rgba(255,255,255,.12); border-radius: 18px; padding: 0; box-shadow: 0 30px 100px rgba(0,0,0,.7); }
 .app-dialog::backdrop { background: rgba(3,5,9,.78); backdrop-filter: blur(7px); }
 .app-dialog form { padding: 30px; }
+.update-dialog { width: min(440px, calc(100% - 30px)); }
+.update-dialog form { padding: 22px; }
+.update-dialog h2 { margin: 0 0 12px; font-size: 1.25rem; }
+.update-dialog p { margin: 0; line-height: 1.5; overflow-wrap: anywhere; }
+.update-dialog .dialog-actions { margin-top: 16px; }
+.update-dialog details { margin-top: 12px; color: var(--muted); font-size: .84rem; }
+.update-dialog summary { color: var(--accent); cursor: pointer; }
+#updateNotes { margin-top: 8px; max-height: 9rem; overflow: auto; white-space: pre-wrap; }
+.update-backup { margin-top: 14px; padding: 12px; border: 1px solid var(--line); border-radius: 10px; }
+.update-backup p { color: var(--muted); font-size: .82rem; }
+.update-backup .text-button { padding: 8px 0 0; }
+.update-backup label { display: flex; align-items: flex-start; gap: 8px; margin-top: 10px; }
+.update-backup input { flex: none; margin: 2px 0 0; accent-color: var(--accent); }
 .dialog-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 22px; }
 .dialog-header h2 { margin: 0; }
 .dialog-close { width: 34px; height: 34px; border-radius: 9px; border: 1px solid var(--line); color: #8e98a8; background: rgba(255,255,255,.03); font-size: 1.35rem; cursor: pointer; }
