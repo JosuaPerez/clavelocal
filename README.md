@@ -56,6 +56,8 @@ La bóveda de escritorio se guarda cifrada en los datos de WebView2 de tu usuari
 
 ## Ejecutar desde el código fuente
 
+El modo navegador local es una opción avanzada y la única disponible para usar la bóveda en Linux y macOS. En Windows se recomienda la app de escritorio. Consulta el riesgo de usar un puerto fijo en el [modelo de amenazas](docs/THREAT_MODEL.md#modo-navegador-local).
+
 Requisitos: [Node.js](https://nodejs.org/) 20 o posterior.
 
 1. Descarga o clona este repositorio.
