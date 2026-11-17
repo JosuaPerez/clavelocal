@@ -4,6 +4,8 @@ Todos los cambios importantes se documentarán aquí siguiendo un esquema inspir
 
 ## [Sin publicar]
 
+- La comprobación de claves maestras ya no deja pasar una base común con una cola numérica larga (por ejemplo `password12345678`). Se recortan hasta 24 dígitos, signos o símbolos en cada borde antes de compararla con la lista, con pruebas de corpus y de tiempo acotado.
+
 ## [0.5.0] - 2026-11-11
 
 - Ventana de actualizaciones más compacta, con confirmación de copia solo al instalar y opción de volver a buscar tras un error.

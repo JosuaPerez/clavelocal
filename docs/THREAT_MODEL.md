@@ -23,7 +23,7 @@ Al crear, restaurar o cambiar la clave se descarta la fecha anterior del recorda
 
 ## Claves elegidas por el usuario
 
-Al crear una bóveda se exige un mínimo de 12 caracteres visibles (grupos de grafemas) y se detectan claves comunes, estructuras triviales y coincidencias con el nombre de usuario completo. La comprobación usa una lista local pequeña curada por el proyecto y reglas deterministas. Reduce elecciones obvias y no anuncia bits de entropía. Una clave mediocre que pasa el filtro sigue expuesta a un ataque offline si alguien obtiene la bóveda cifrada. El desbloqueo de copias existentes conserva su clave, y guardar una entrada o importar CSV sigue admitiendo contraseñas débiles.
+Al crear una bóveda se exige un mínimo de 12 caracteres visibles (grupos de grafemas) y se detectan claves comunes, estructuras triviales y coincidencias con el nombre de usuario completo. La comprobación usa una lista local pequeña curada por el proyecto y reglas deterministas. Una base común seguida o precedida de hasta 24 dígitos, signos o símbolos se trata como variante de esa base; una clave poco común con una cola numérica larga puede bloquearse aunque no sea débil (falso positivo aceptado, conservador). Reduce elecciones obvias y no anuncia bits de entropía. Una clave mediocre que pasa el filtro sigue expuesta a un ataque offline si alguien obtiene la bóveda cifrada. El desbloqueo de copias existentes conserva su clave, y guardar una entrada o importar CSV sigue admitiendo contraseñas débiles.
 
 ## Cambio de clave maestra
 

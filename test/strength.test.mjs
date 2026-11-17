@@ -10,6 +10,9 @@ test("rechaza claves comunes y sus variantes, secuencias y repeticiones", () => 
     "abcdefghijkl", "abcabcabcabc", "Password123!", "Contraseña2026!",
     "contraseña1234", "iloveyou1234", "bienvenido2026", "$P4$$W0RD12!",
     "c14v3password", "w3lc0m3password", "qwertyuiopñlkj", "1qaz2wsx3edc",
+    // A common base followed by a long numeric tail (gap found in review of round 2).
+    "password12345678", "Password123456789", "iloveyou12345678", "Contraseña123456789",
+    "contrasena1234567890", "bienvenido12345678", "qwerty12345678", "12345678password",
   ];
   for (const [index, password] of rejected.entries()) {
     const result = assessMasterPassword(password);
@@ -26,6 +29,7 @@ test("acepta frases de prueba y claves variadas sin estimar entropía", () => {
     "solo-pruebas-ajustes-ficticios", "clave-maestra-ficticia-de-prueba",
     "solo-pruebas-no-es-secreto", "caballo-nube-mesa-tiza", "v7#Qm2$Lx9!pZ4",
     "solo-pruebas-paginacion-ficticia", "admin-puerto-azul-ventana",
+    "contraseña-de-mi-gato-Pelusa", "password-azul-nube-tiza",
   ];
   for (const [index, password] of accepted.entries()) {
     assert.equal(assessMasterPassword(password, { username: "Perfil de prueba" }).blocked, false, `Caso aceptado ${index}`);
@@ -46,4 +50,12 @@ test("la lista propia conserva su SHA-256 con finales de línea LF", async () =>
   const source = await readFile(new URL("../common-passwords.mjs", import.meta.url), "utf8");
   assert.equal(createHash("sha256").update(source.replace(/\r\n/g, "\n")).digest("hex"),
     "43451a00985d81d26ac644e528fd5b61472d384e06b88c44f49d01d18b1a2dbc");
+});
+
+test("las entradas muy largas o con muchos símbolos se evalúan en tiempo acotado", () => {
+  for (const password of ["a".repeat(10000), "!".repeat(100), `password${"1".repeat(24)}`, `${"1".repeat(24)}password${"!".repeat(24)}`]) {
+    const started = performance.now();
+    assessMasterPassword(password, { username: "Perfil de prueba" });
+    assert.ok(performance.now() - started < 1000, "La comprobación tardó demasiado");
+  }
 });
