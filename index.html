@@ -94,6 +94,7 @@
           </div>
           <div class="sidebar-footer">
             <button id="profileButton" type="button">Mi perfil</button>
+            <button id="healthButton" type="button" disabled>Salud de la bóveda</button>
             <button id="settingsButton" type="button">Ajustes de bloqueo</button>
             <button id="changeKeyButton" type="button" disabled>Cambiar clave maestra</button>
             <button id="csvImportButton" type="button">Importar contraseñas CSV</button>
@@ -159,6 +160,18 @@
         <p>Las copias requieren su clave maestra. No podemos recuperarla ni desbloquear una bóveda sin ella.</p>
         <p>La copia anterior conserva la versión previa al último cambio guardado o migración. Abrir y bloquear no la reemplazan. No sustituye una copia externa.</p>
         <a href="https://github.com/JosuaPerez/clavelocal/issues/new?template=feedback.yml" target="_blank" rel="noopener noreferrer">Enviar comentarios ↗</a>
+      </div>
+    </dialog>
+
+    <dialog id="healthDialog" class="app-dialog" aria-labelledby="healthTitle">
+      <div class="health-content">
+        <div class="dialog-header"><h2 id="healthTitle" tabindex="-1">Salud de la bóveda</h2><button id="closeHealth" type="button" class="dialog-close" aria-label="Cerrar salud de la bóveda">×</button></div>
+        <p class="microcopy">Revisión hecha en este equipo, sin enviar nada. Detecta patrones evidentes; no mide la fortaleza real ni comprueba si una clave se filtró en otro servicio.</p>
+        <p id="healthSummary" role="status" aria-live="polite"></p>
+        <section aria-labelledby="healthWeakTitle"><h3 id="healthWeakTitle">Cortas o predecibles</h3><ul id="healthWeak" class="health-list"></ul></section>
+        <section aria-labelledby="healthReusedTitle"><h3 id="healthReusedTitle">Repetidas en varias entradas</h3><div id="healthReused"></div></section>
+        <section aria-labelledby="healthStaleTitle"><h3 id="healthStaleTitle">Sin editar desde hace tiempo</h3><ul id="healthStale" class="health-list"></ul></section>
+        <div class="dialog-actions"><button id="doneHealth" class="secondary-button" type="button">Cerrar</button></div>
       </div>
     </dialog>
 

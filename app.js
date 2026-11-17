@@ -7,6 +7,7 @@ import { openSession, rekeySession, RekeyVerificationError } from "./session.mjs
 import { createClipboardCleaner } from "./clipboard.mjs";
 import { createLockPolicy, DEFAULT_SETTINGS, validateSettings } from "./settings.mjs";
 import { assessMasterPassword, describeEntryPassword } from "./strength.mjs";
+import { analyzeVault } from "./health.mjs";
 const PAGE_SIZE = 5;
 const LAST_EXPORT_KEY = "clavelocal.last-export.v1";
 const EXPORT_REMINDER_MS = 30 * 24 * 60 * 60 * 1000;
@@ -179,6 +180,7 @@ function unlockUi() {
   renderEntries();
   $("#settingsButton").disabled = state.demo;
   $("#changeKeyButton").disabled = state.demo;
+  $("#healthButton").disabled = state.demo;
   updateExportReminder();
   lockPolicy.start(state.vault.settings || DEFAULT_SETTINGS, document.hidden);
 }
@@ -195,6 +197,8 @@ function lockVault(message = "Bóveda bloqueada") {
   state.vault = { version: 1, entries: [] };
   state.page = 1;
   lockPolicy.stop();
+  $("#healthDialog").close();
+  clearHealth();
   $("#settingsDialog").close();
   $("#settingsForm").reset();
   $("#settingsError").textContent = "";
@@ -359,6 +363,55 @@ async function deleteRekeyBackup() {
   } catch (error) {
     if (generation === session && state.key) $("#rekeyRecoveryStatus").textContent = error.message;
   }
+}
+
+function clearHealth() {
+  for (const id of ["healthWeak", "healthReused", "healthStale"]) $(`#${id}`).replaceChildren();
+  $("#healthSummary").textContent = "";
+}
+
+function healthRow(entry) {
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = "secondary-button";
+  button.textContent = entry.username ? `${entry.site} · ${entry.username}` : entry.site;
+  button.addEventListener("click", () => { $("#healthDialog").close(); openEntryDialog(entry); });
+  return button;
+}
+
+function healthList(list, ids, byId, emptyText) {
+  list.replaceChildren();
+  if (!ids.length) { const empty = document.createElement("p"); empty.className = "health-empty"; empty.textContent = emptyText; list.append(empty); return; }
+  for (const id of ids) {
+    const entry = byId.get(id);
+    if (!entry) continue;
+    const item = document.createElement("li");
+    item.append(healthRow(entry));
+    list.append(item);
+  }
+}
+
+function showHealth() {
+  if (!state.key || state.demo || busy) return;
+  const result = analyzeVault(state.vault);
+  const byId = new Map(state.vault.entries.map((entry) => [entry.id, entry]));
+  const weak = $("#healthWeak"), stale = $("#healthStale"), reused = $("#healthReused");
+  healthList(weak, result.weak, byId, "No se detectaron claves cortas o predecibles.");
+  healthList(stale, result.stale, byId, `Ninguna entrada lleva más de ${result.staleDays} días sin editarse.`);
+  reused.replaceChildren();
+  if (!result.reused.length) { const empty = document.createElement("p"); empty.className = "health-empty"; empty.textContent = "No hay claves repetidas."; reused.append(empty); }
+  for (const ids of result.reused) {
+    const group = document.createElement("div");
+    group.className = "health-group";
+    const label = document.createElement("p");
+    label.textContent = `La misma contraseña en ${ids.length} entradas`;
+    group.append(label);
+    for (const id of ids) if (byId.has(id)) group.append(healthRow(byId.get(id)));
+    reused.append(group);
+  }
+  $("#healthSummary").textContent = `${result.total} entradas revisadas: ${result.weak.length} cortas o predecibles, ${result.reused.length} grupos repetidos, ${result.stale.length} sin editar desde hace más de ${result.staleDays} días.`;
+  $("#healthDialog").showModal();
+  $("#healthTitle").focus();
 }
 
 function createButton(label, iconPath, handler, className = "") {
@@ -826,6 +879,10 @@ function bindEvents() {
   $("#settingsButton").addEventListener("click", showSettings);
   $("#settingsForm").addEventListener("submit", saveSettings);
   $("#cancelSettings").addEventListener("click", () => $("#settingsDialog").close());
+  $("#healthButton").addEventListener("click", showHealth);
+  $("#closeHealth").addEventListener("click", () => $("#healthDialog").close());
+  $("#doneHealth").addEventListener("click", () => $("#healthDialog").close());
+  $("#healthDialog").addEventListener("close", () => { if (state.key && !elements.entryDialog.open) $("#healthButton").focus(); clearHealth(); });
   $("#changeKeyButton").addEventListener("click", showChangeKey);
   $("#changeKeyForm").addEventListener("submit", saveChangeKey);
   $("#nextKey").addEventListener("input", updateChangeKeyPolicy);
@@ -999,6 +1056,7 @@ if (document.documentElement.dataset.mode === "demo") {
   $("#saveEntryButton").disabled = true;
   $("#importButton").disabled = true;
   $("#csvImportButton").disabled = true;
+  $("#healthButton").disabled = true;
   $("#exportButton").disabled = true;
   $("#useGeneratedButton").disabled = true;
 }

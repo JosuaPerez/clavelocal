@@ -224,3 +224,11 @@ input[type="range"] { accent-color: var(--accent); padding: 0; background: trans
   .option-grid { grid-template-columns: 1fr; }
   .dialog-actions { flex-wrap: wrap; }
 }
+
+.health-content h3 { font-size: .9rem; margin: 18px 0 6px; }
+.health-list { list-style: none; margin: 0; padding: 0; }
+.health-list li { margin: 4px 0; }
+.health-list button, .health-group button { width: 100%; text-align: left; }
+.health-group { border: 1px solid var(--line); border-radius: 12px; padding: 8px 12px; margin: 8px 0; }
+.health-group p { margin: 0 0 6px; color: var(--muted); font-size: .8rem; }
+.health-empty { color: var(--muted); font-size: .8rem; margin: 4px 0; }

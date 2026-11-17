@@ -4,6 +4,8 @@ Todos los cambios importantes se documentarán aquí siguiendo un esquema inspir
 
 ## [Sin publicar]
 
+- Salud de la bóveda: vista local de solo lectura con claves cortas o predecibles, contraseñas repetidas y entradas sin editar desde hace más de 365 días. Sin red ni almacenamiento, sin mostrar contraseñas, y se limpia al bloquear.
+
 - La comprobación de claves maestras ya no deja pasar una base común con una cola numérica larga (por ejemplo `password12345678`). Se recortan hasta 24 dígitos, signos o símbolos en cada borde antes de compararla con la lista, con pruebas de corpus y de tiempo acotado.
 
 ## [0.5.0] - 2026-11-11
