@@ -6,6 +6,11 @@ const fold = (value) => value.toLowerCase().normalize("NFD").replace(/\p{M}/gu, 
 const substitutions = { "4": "a", "3": "e", "0": "o", "5": "s", "7": "t", "@": "a", "$": "s" };
 const commonWord = commonPasswords.map((word) => word.replace(/[il]/g, (letter) => `[${letter}1]`)).join("|");
 const commonPattern = new RegExp(`^(?:${commonWord}){1,3}$`);
+// Digits, punctuation and symbols are stripped from either edge before matching the common list.
+const MAX_EDGE = 24;
+const edgeClass = "[\\p{N}\\p{P}\\p{S}]";
+const prefixPattern = new RegExp(`^${edgeClass}{0,${MAX_EDGE}}`, "u");
+const suffixPattern = new RegExp(`${edgeClass}{0,${MAX_EDGE}}$`, "u");
 const maxCommonLength = 3 * Math.max(...commonPasswords.map((word) => word.length));
 
 const rows = [
@@ -16,13 +21,13 @@ const rows = [
 const sequences = rows.flatMap((row) => [row, [...row].reverse().join("")]);
 
 function isCommon(value) {
-  if (value.length > maxCommonLength + 6) return false;
+  if (value.length > maxCommonLength + MAX_EDGE) return false;
   const normalized = value.replace(/[43057@$]/g, (character) => substitutions[character]);
-  const prefix = value.match(/^[\p{N}\p{P}\p{S}]{0,6}/u)[0];
-  const suffix = value.match(/[\p{N}\p{P}\p{S}]{0,6}$/u)[0];
+  const prefix = value.match(prefixPattern)[0];
+  const suffix = value.match(suffixPattern)[0];
   const offsets = (edge) => [0, ...[...edge].map((_, i, chars) => chars.slice(0, i + 1).join("").length)];
   for (const [leftCount, left] of offsets(prefix).entries()) {
-    for (const right of offsets([...suffix].reverse().join("")).slice(0, 7 - leftCount)) {
+    for (const right of offsets([...suffix].reverse().join("")).slice(0, MAX_EDGE + 1 - leftCount)) {
       if (commonPattern.test(normalized.slice(left, normalized.length - right))) return true;
     }
   }
