@@ -297,6 +297,14 @@
         <div class="dialog-header"><div><p class="card-kicker">GENERADOR</p><h2>Una clave difícil de adivinar</h2></div><button class="dialog-close" value="cancel" aria-label="Cerrar">×</button></div>
         <div class="generated-output"><output id="generatedPassword"></output><button id="copyGeneratedButton" type="button" aria-label="Copiar contraseña">Copiar</button></div>
         <div class="strength-line generator-strength"><span id="generatorStrengthFill"></span><small id="generatorStrengthLabel"></small></div>
+        <fieldset class="generator-mode">
+          <legend class="sr-only">Tipo de clave</legend>
+          <div class="option-grid">
+            <label><input id="modePassword" name="generatorMode" type="radio" value="password" checked><span></span> Contraseña</label>
+            <label><input id="modePassphrase" name="generatorMode" type="radio" value="passphrase"><span></span> Frase</label>
+          </div>
+        </fieldset>
+        <div id="passwordOptions">
         <div class="range-heading"><label for="passwordLength">Longitud</label><strong id="lengthValue">20</strong></div>
         <input id="passwordLength" type="range" min="12" max="64" value="20">
         <div class="option-grid">
@@ -304,6 +312,22 @@
           <label><input id="useLowercase" type="checkbox" checked><span></span> Minúsculas</label>
           <label><input id="useNumbers" type="checkbox" checked><span></span> Números</label>
           <label><input id="useSymbols" type="checkbox" checked><span></span> Símbolos</label>
+        </div>
+        </div>
+        <div id="passphraseOptions" hidden>
+          <div class="range-heading"><label for="passphraseWords">Palabras</label><strong id="wordsValue">6</strong></div>
+          <input id="passphraseWords" type="range" min="4" max="10" value="6">
+          <div class="range-heading"><label for="passphraseSeparator">Separador</label></div>
+          <select id="passphraseSeparator">
+            <option value="-" selected>Guion (-)</option>
+            <option value=" ">Espacio</option>
+            <option value=".">Punto (.)</option>
+            <option value="_">Guion bajo (_)</option>
+          </select>
+          <div class="option-grid">
+            <label><input id="passphraseCapitalize" type="checkbox"><span></span> Mayúscula inicial</label>
+            <label><input id="passphraseNumber" type="checkbox"><span></span> Añadir un dígito</label>
+          </div>
         </div>
         <div class="dialog-actions"><button class="secondary-button" id="regenerateButton" type="button">↻ Generar otra</button><button class="primary-button" id="useGeneratedButton" value="default">Usar contraseña</button></div>
       </form>
