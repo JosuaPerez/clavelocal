@@ -42,13 +42,18 @@ La versión 0.5 sigue siendo experimental. Todavía no hay firma de editor Authe
 
 Si tienes 0.2, exporta una copia cifrada, cierra ClaveLocal e instala la versión actual manualmente una vez, con el mismo usuario de Windows, sin borrar datos. Desde 0.3 aparece **Buscar actualizaciones**. Solo los releases publicados se ofrecen como actualizaciones; subir un commit no actualiza las instalaciones.
 
-## Importar desde Chrome o Brave
+## Importar desde otros gestores
 
-1. Crea o abre tu bóveda y pulsa **Importar contraseñas CSV**.
-2. Selecciona el CSV exportado por el navegador. Se reconocen `name`, `url`, `username`, `password` y `note`/`notes`, y puedes ajustar el mapeo.
-3. Revisa el número de entradas nuevas, duplicados exactos y registros inválidos; confirma la importación. Verifica después tus entradas y exporta una copia cifrada.
+1. Crea o abre tu bóveda y pulsa **Importar desde otro gestor**.
+2. Selecciona el archivo exportado por tu gestor. Se reconocen por su estructura:
+   - **Bitwarden:** CSV y JSON **sin cifrar**. Un JSON cifrado se rechaza.
+   - **KeePassXC y 1Password:** CSV. Las cabeceras de estos dos formatos se reconocen por las columnas habituales y **están pendientes de verificar contra exportaciones reales**; si algo no se interpreta bien, el mapeo de columnas se puede ajustar.
+   - **Chrome, Brave u otro CSV:** `name`, `url`, `username`, `password` y `note`/`notes`.
+3. Revisa el origen detectado, el número de entradas nuevas, duplicados exactos, no válidas y omitidas; confirma la importación. Verifica después tus entradas y exporta una copia cifrada.
 
-El archivo se procesa en este equipo, sin enviarlo a servidores. El CSV original sigue conteniendo contraseñas sin cifrar: elimínalo tú de forma segura cuando termines de comprobar la migración. La app no lo borra ni lo modifica. Se admiten CSV UTF-8 con comas, punto y coma o tabuladores; tamaño máximo 4 MiB y hasta 5.000 entradas totales. Los valores demasiado largos se señalan como inválidos, sin truncarlos. El botón **Restaurar copia JSON** es un flujo diferente que reemplaza la bóveda completa tras verificarla.
+Solo se importan inicios de sesión. Tarjetas, identidades y notas seguras se cuentan y se omiten. La carpeta o el grupo se usa como categoría solo si coincide con una de las cinco de ClaveLocal; si no, la entrada queda en Personal. Los favoritos de Bitwarden se conservan. **Los códigos TOTP y los campos personalizados no se importan**: la app te avisa de cuántas entradas los tenían y no debes eliminar tu origen hasta haberlos migrado.
+
+El archivo se procesa en este equipo, sin enviarlo a servidores. El original sigue conteniendo contraseñas sin cifrar: elimínalo tú de forma segura cuando termines de comprobar la migración. La app no lo borra ni lo modifica. Se admiten CSV UTF-8 con comas, punto y coma o tabuladores; tamaño máximo 4 MiB y hasta 5.000 entradas totales. Los valores demasiado largos se señalan como inválidos, sin truncarlos. El botón **Restaurar copia JSON** es un flujo diferente que reemplaza la bóveda completa tras verificarla; si eliges el archivo en el botón equivocado, la app te indica cuál usar. No se importan `.1pux`, KDBX ni JSON cifrado.
 
 Consulta [las actualizaciones](docs/UPDATES.md) y [la firma de Windows](docs/WINDOWS_SIGNING.md).
 

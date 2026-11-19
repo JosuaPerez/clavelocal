@@ -97,7 +97,7 @@
             <button id="healthButton" type="button" disabled>Salud de la bóveda</button>
             <button id="settingsButton" type="button">Ajustes de bloqueo</button>
             <button id="changeKeyButton" type="button" disabled>Cambiar clave maestra</button>
-            <button id="csvImportButton" type="button">Importar contraseñas CSV</button>
+            <button id="csvImportButton" type="button">Importar desde otro gestor</button>
             <button id="exportButton" type="button">Exportar copia cifrada</button>
             <button id="importButton" type="button">Restaurar copia JSON</button>
             <input id="importFile" type="file" accept="application/json,.json,text/csv,.csv" hidden>
@@ -252,10 +252,12 @@
 
     <dialog id="csvDialog" class="app-dialog">
       <form id="csvForm">
-        <h2>Importar desde Chrome o Brave</h2>
-        <p>Revisa las columnas. Añadiremos las entradas nuevas sin reemplazar las actuales. Las contraseñas se cifran en este equipo; no se envían a ningún servidor.</p>
+        <h2 id="csvTitle">Importar desde otro gestor</h2>
+        <p>Revisa el resumen. Añadiremos las entradas nuevas sin reemplazar las actuales. Las contraseñas se cifran en este equipo; no se envían a ningún servidor.</p>
+        <p id="csvSource" class="microcopy"></p>
         <div id="csvMapping" class="form-grid"></div>
         <p id="csvSummary" role="status"></p>
+        <p id="csvNotice" class="form-error" role="note"></p>
         <ul id="csvIssues"></ul>
         <p class="form-error" id="csvError" role="alert"></p>
         <p class="microcopy">El CSV original contiene contraseñas sin cifrar. Después de verificar la importación, elimínalo tú de forma segura. ClaveLocal no modifica ese archivo.</p>

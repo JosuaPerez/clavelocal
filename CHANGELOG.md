@@ -4,6 +4,8 @@ Todos los cambios importantes se documentarán aquí siguiendo un esquema inspir
 
 ## [Sin publicar]
 
+- Importación desde otros gestores: CSV de Bitwarden, KeePassXC y 1Password y JSON sin cifrar de Bitwarden, con origen detectado por estructura, favoritos, categoría desde la carpeta o el grupo, varias URL, entradas no válidas por fila y aviso de las que tenían TOTP o campos personalizados que no se importan. Tarjetas, identidades y notas seguras se omiten y se cuentan; el JSON cifrado se rechaza. Cada botón de importación indica el flujo correcto si se elige el archivo equivocado. Formatos de KeePassXC y 1Password pendientes de verificar con exportaciones reales.
+
 - Generador de frases de 4 a 10 palabras con lista propia de 2.048 palabras en español, muestreo uniforme sin sesgo, separador y opciones, y estimación exacta en bits para frases generadas de forma uniforme. La lista se verifica por hash en las pruebas.
 
 - Salud de la bóveda: vista local de solo lectura con claves cortas o predecibles, contraseñas repetidas y entradas sin editar desde hace más de 365 días. Sin red ni almacenamiento, sin mostrar contraseñas, y se limpia al bloquear.
