@@ -8,6 +8,8 @@ import { createClipboardCleaner } from "./clipboard.mjs";
 import { createLockPolicy, DEFAULT_SETTINGS, validateSettings } from "./settings.mjs";
 import { assessMasterPassword, describeEntryPassword } from "./strength.mjs";
 import { analyzeVault } from "./health.mjs";
+import { generatePassphrase, passphraseEntropyBits } from "./passphrase.mjs";
+import { passphraseWords } from "./wordlist-es.mjs";
 const PAGE_SIZE = 5;
 const LAST_EXPORT_KEY = "clavelocal.last-export.v1";
 const EXPORT_REMINDER_MS = 30 * 24 * 60 * 60 * 1000;
@@ -637,9 +639,21 @@ function updateStrength(password, fill, label) {
 }
 
 function refreshGeneratedPassword() {
-  const password = generatePassword();
-  elements.generatedPassword.textContent = password;
-  updateStrength(password, elements.generatorStrengthFill, elements.generatorStrengthLabel);
+  const phrase = $("#modePassphrase").checked;
+  $("#passwordOptions").hidden = phrase;
+  $("#passphraseOptions").hidden = !phrase;
+  if (!phrase) {
+    const password = generatePassword();
+    elements.generatedPassword.textContent = password;
+    updateStrength(password, elements.generatorStrengthFill, elements.generatorStrengthLabel);
+    return;
+  }
+  const options = { words: Number($("#passphraseWords").value), separator: $("#passphraseSeparator").value, capitalize: $("#passphraseCapitalize").checked, addNumber: $("#passphraseNumber").checked };
+  elements.generatedPassword.textContent = generatePassphrase(options);
+  const bits = passphraseEntropyBits(options);
+  elements.generatorStrengthFill.style.width = `${bits < 50 ? 25 : bits < 75 ? 60 : 100}%`;
+  elements.generatorStrengthFill.style.background = bits < 50 ? "#ff7b86" : bits < 75 ? "#f2c86b" : "#7cf5bc";
+  elements.generatorStrengthLabel.textContent = `Unos ${Math.round(bits)} bits: ${options.words} palabras elegidas al azar de una lista pública de ${passphraseWords.length}${options.addNumber ? " y un dígito" : ""}. Solo vale si la elección es realmente aleatoria; no sustituyas palabras.`;
 }
 
 function openGenerator() {
@@ -959,6 +973,8 @@ function bindEvents() {
     elements.entryPassword.value = password;
     elements.entryStrengthLabel.textContent = describeEntryPassword(password);
   });
+  $("#passphraseWords").addEventListener("input", () => { $("#wordsValue").textContent = $("#passphraseWords").value; refreshGeneratedPassword(); });
+  $("#passphraseSeparator").addEventListener("change", refreshGeneratedPassword);
   elements.passwordLength.addEventListener("input", () => { elements.lengthValue.textContent = elements.passwordLength.value; refreshGeneratedPassword(); });
   $$(".option-grid input").forEach((input) => input.addEventListener("change", refreshGeneratedPassword));
   $("#exportButton").addEventListener("click", exportVault);

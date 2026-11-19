@@ -35,6 +35,10 @@ La rotación mantiene en `.previous` el envoltorio anterior. Esa copia y las exp
 
 La vista de salud analiza la bóveda abierta en memoria y no usa red ni almacenamiento: no guarda hashes, mapas ni resultados, y solo escribe en el DOM nombres de sitio y usuario, nunca contraseñas. Se limpia al cerrarla y al bloquear. Marca como cortas o predecibles las claves que el filtro de creación bloquearía, como repetidas las contraseñas idénticas entre entradas y como "sin editar" las entradas cuya fecha de edición supera 365 días; esa fecha cambia con cualquier edición, no solo con la contraseña. No detecta filtraciones en otros servicios, y quien tenga la bóveda abierta ya puede ver esas contraseñas.
 
+## Generador de frases
+
+El modo "Frase" elige de 4 a 10 palabras con `crypto.getRandomValues` mediante muestreo uniforme con rechazo (sin sesgo de módulo) desde una lista de 2.048 palabras en español escrita para este proyecto bajo su licencia MIT; la lista está en el código, es pública y su hash se comprueba en las pruebas. Como cada palabra se elige de forma uniforme e independiente, la interfaz puede mostrar un número exacto de bits (11 por palabra, más unos 3,3 si se añade un dígito). Ese cálculo solo vale para frases generadas así: no se aplica a claves elegidas por personas, y sustituir o reordenar palabras lo invalida. Quien conozca la lista conoce el espacio de búsqueda; la seguridad depende del número de palabras, no de que la lista sea secreta. Las frases no se guardan ni se registran, y la salida se borra al cerrar el diálogo.
+
 ## Aplicación y distribución
 
 El escritorio empaqueta recursos locales con Tauri, sin APIs genéricas de shell, archivos ni HTTP expuestas al contenido web. La bóveda usa almacenamiento cifrado del WebView del usuario. La CSP no autoriza scripts remotos; en escritorio admite únicamente el IPC nativo requerido por dos comandos de actualización y `copy_secret`. La web pública es una demo separada, sin formularios habilitados para secretos reales; no distribuye la app real por HTTP.
