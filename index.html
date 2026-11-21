@@ -93,15 +93,24 @@
             <nav id="categoryNav"></nav>
           </div>
           <div class="sidebar-footer">
-            <button id="profileButton" type="button">Mi perfil</button>
-            <button id="healthButton" type="button" disabled>Salud de la bóveda</button>
-            <button id="settingsButton" type="button">Ajustes de bloqueo</button>
-            <button id="changeKeyButton" type="button" disabled>Cambiar clave maestra</button>
-            <button id="csvImportButton" type="button">Importar desde otro gestor</button>
-            <button id="exportButton" type="button">Exportar copia cifrada</button>
-            <button id="importButton" type="button">Restaurar copia JSON</button>
-            <input id="importFile" type="file" accept="application/json,.json,text/csv,.csv" hidden>
-            <p><i></i> Bóveda cifrada y local</p>
+            <div class="sidebar-group" role="group" aria-labelledby="groupSecurity">
+              <p class="sidebar-group-label" id="groupSecurity">Seguridad</p>
+              <button id="healthButton" type="button" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 4 6v6c0 4.5 3.2 7.7 8 9 4.8-1.3 8-4.5 8-9V6l-8-3Z"/><path d="m9 12 2 2 4-4"/></svg><span>Salud de la bóveda</span></button>
+              <button id="settingsButton" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg><span>Ajustes de bloqueo</span></button>
+              <button id="changeKeyButton" type="button" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="8" cy="15" r="4"/><path d="m11 12 8-8m-3 3 3 3"/></svg><span>Cambiar clave maestra</span></button>
+            </div>
+            <div class="sidebar-group" role="group" aria-labelledby="groupData">
+              <p class="sidebar-group-label" id="groupData">Copias y datos</p>
+              <button id="csvImportButton" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11m0 0-4-4m4 4 4-4M5 20h14"/></svg><span>Importar desde otro gestor</span></button>
+              <button id="exportButton" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V4m0 0L8 8m4-4 4 4M5 20h14"/></svg><span>Exportar copia cifrada</span></button>
+              <button id="importButton" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 1 0 3-6.2M4 4v4h4"/></svg><span>Restaurar copia JSON</span></button>
+              <input id="importFile" type="file" accept="application/json,.json,text/csv,.csv" hidden>
+            </div>
+            <div class="sidebar-group" role="group" aria-labelledby="groupAccount">
+              <p class="sidebar-group-label" id="groupAccount">Cuenta</p>
+              <button id="profileButton" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-6 8-6s8 2 8 6"/></svg><span>Mi perfil</span></button>
+            </div>
+            <p class="sidebar-status"><i></i> Bóveda cifrada y local</p>
           </div>
         </aside>
 
@@ -119,6 +128,14 @@
               <button class="secondary-button" id="rekeyDeletePrevious" type="button" disabled>Eliminar la copia anterior local</button>
             </div>
             <p id="rekeyRecoveryStatus" role="status"></p>
+          </section>
+          <section class="first-steps" id="firstSteps" aria-labelledby="firstStepsTitle" hidden>
+            <div class="first-steps-head">
+              <h3 id="firstStepsTitle">Primeros pasos</h3>
+              <span id="firstStepsProgress" class="first-steps-progress"></span>
+              <button id="dismissFirstSteps" class="text-button" type="button">Ocultar</button>
+            </div>
+            <ol id="firstStepsList" class="first-steps-list"></ol>
           </section>
           <div class="vault-header">
             <div>
