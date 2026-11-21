@@ -237,6 +237,8 @@ function lockVault(message = "Bóveda bloqueada") {
   $("#vaultNotice").hidden = true;
   $("#backupReminder").hidden = true;
   $("#firstSteps").hidden = true;
+  $("#sidebarFooter").classList.remove("open");
+  $("#menuToggle").setAttribute("aria-expanded", "false");
   $("#updateExportButton").hidden = true;
   state.vault = { version: 1, entries: [] };
   state.page = 1;
@@ -1129,6 +1131,10 @@ function bindEvents() {
   $$(".option-grid input").forEach((input) => input.addEventListener("change", refreshGeneratedPassword));
   $("#exportButton").addEventListener("click", exportVault);
   $("#backupReminderExport").addEventListener("click", exportVault);
+  $("#menuToggle").addEventListener("click", () => {
+    const open = $("#sidebarFooter").classList.toggle("open");
+    $("#menuToggle").setAttribute("aria-expanded", String(open));
+  });
   $("#dismissFirstSteps").addEventListener("click", () => { setFlag(DISMISSED_KEY); renderFirstSteps(); });
   $("#importButton").addEventListener("click", () => { importIntent = "restore"; elements.importFile.accept = ".json,application/json"; elements.importFile.click(); });
   elements.importFile.addEventListener("change", () => importVault(elements.importFile.files[0]));
