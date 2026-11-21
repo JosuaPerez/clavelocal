@@ -74,14 +74,14 @@ button:disabled { opacity: .5; cursor: not-allowed; }
 .benefits p { color: #778194; font-size: .74rem; line-height: 1.55; margin: 0; }
 .benefits strong { display: block; color: #d9dee7; font-size: .78rem; margin-bottom: 3px; }
 .glass-panel { background: linear-gradient(145deg, rgba(22,28,40,.92), rgba(13,17,26,.86)); border: 1px solid var(--line); box-shadow: var(--shadow); backdrop-filter: blur(20px); }
-.auth-card { padding: clamp(28px, 4vw, 48px); border-radius: 22px; position: relative; overflow: hidden; }
+.auth-card { padding: clamp(24px, 3vw, 36px); border-radius: 22px; position: relative; overflow: hidden; }
 .auth-card::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 1px; background: linear-gradient(90deg, transparent, rgba(124,245,188,.55), transparent); }
-.auth-icon { width: 48px; height: 48px; border-radius: 14px; color: var(--accent); background: var(--accent-soft); display: grid; place-items: center; margin-bottom: 28px; }
+.auth-icon { width: 48px; height: 48px; border-radius: 14px; color: var(--accent); background: var(--accent-soft); display: grid; place-items: center; margin-bottom: 18px; }
 .auth-icon svg { width: 25px; height: 25px; }
 .card-kicker { color: var(--accent); margin: 0 0 8px; }
 .auth-card h2, .dialog-header h2 { font-family: Georgia, "Times New Roman", serif; font-weight: 400; font-size: 2rem; margin: 0 0 10px; letter-spacing: -.03em; }
 .muted { color: var(--muted); line-height: 1.55; margin: 0; }
-.auth-card form { margin-top: 30px; }
+.auth-card form { margin-top: 18px; }
 label { display: block; color: #bfc6d1; font-size: .78rem; margin: 16px 0 8px; font-weight: 600; }
 input, select, textarea { width: 100%; color: var(--text); border: 1px solid var(--line); background: rgba(5,8,13,.6); border-radius: 10px; padding: 13px 14px; outline: none; transition: border-color .2s, box-shadow .2s; }
 input:focus, select:focus, textarea:focus { border-color: rgba(124,245,188,.6); box-shadow: 0 0 0 3px rgba(124,245,188,.08); }
@@ -103,6 +103,11 @@ textarea { resize: vertical; }
 .password-policy { color: var(--muted); font-size: .75rem; line-height: 1.5; margin: 8px 0; }
 .password-policy p { margin: 0 0 4px; }
 .password-policy p:first-child { color: var(--text); }
+.suggest-button { margin-top: 6px; padding: 9px 13px; font-size: .76rem; }
+.suggestion-note { color: var(--accent); }
+.suggestion-phrase { margin: 6px 0 0; padding: 10px 12px; border: 1px dashed rgba(124,245,188,.35); border-radius: 9px; color: var(--text); font: 600 .9rem/1.5 Consolas, "Courier New", monospace; overflow-wrap: anywhere; user-select: all; }
+.check-line { display: flex; align-items: center; gap: 9px; margin: 8px 0 0; font-weight: 500; color: var(--text); }
+#suggestionAck { width: auto; accent-color: var(--accent); }
 .rekey-fields { border: 0; padding: 0; margin: 0; min-width: 0; }
 .rekey-recovery { border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; margin-bottom: 18px; }
 .rekey-recovery h3 { margin: 0; }
@@ -208,6 +213,12 @@ input[type="range"] { accent-color: var(--accent); padding: 0; background: trans
 .option-grid label:has(input:checked) { border-color: rgba(124,245,188,.24); background: var(--accent-soft); color: #dffbef; }
 .toast { position: fixed; z-index: 30; left: 50%; bottom: 28px; transform: translate(-50%, 20px); opacity: 0; color: #dffbef; background: #17241f; border: 1px solid rgba(124,245,188,.22); box-shadow: var(--shadow); border-radius: 10px; padding: 11px 16px; font-size: .76rem; pointer-events: none; transition: opacity .2s, transform .2s; }
 .toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+@media (max-height: 900px) and (min-width: 901px) {
+  .welcome-view { padding-top: 28px; align-items: start; }
+  .auth-card .auth-icon { display: none; }
+  .auth-card label { margin-top: 12px; }
+}
 
 @media (max-width: 900px) {
   .welcome-view { grid-template-columns: 1fr; padding: 60px 0 80px; }
