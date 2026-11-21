@@ -11,6 +11,7 @@ import { assessMasterPassword, describeEntryPassword } from "./strength.mjs";
 import { analyzeVault } from "./health.mjs";
 import { generatePassphrase, passphraseEntropyBits } from "./passphrase.mjs";
 import { passphraseWords } from "./wordlist-es.mjs";
+import { firstSteps, LOCK_REVIEWED_KEY, HEALTH_REVIEWED_KEY, DISMISSED_KEY } from "./firststeps.mjs";
 const PAGE_SIZE = 5;
 const LAST_EXPORT_KEY = "clavelocal.last-export.v1";
 const EXPORT_REMINDER_MS = 30 * 24 * 60 * 60 * 1000;
@@ -198,6 +199,7 @@ function lockVault(message = "Bóveda bloqueada") {
   $("#vaultNotice").textContent = "";
   $("#vaultNotice").hidden = true;
   $("#backupReminder").hidden = true;
+  $("#firstSteps").hidden = true;
   $("#updateExportButton").hidden = true;
   state.vault = { version: 1, entries: [] };
   state.page = 1;
@@ -260,6 +262,8 @@ function showSettings() {
   $("#settingsError").textContent = "";
   $("#settingsDialog").showModal();
   $("#idleMinutes").focus();
+  setFlag(LOCK_REVIEWED_KEY);
+  renderFirstSteps();
 }
 
 async function saveSettings(event) {
@@ -417,6 +421,8 @@ function showHealth() {
   $("#healthSummary").textContent = `${result.total} entradas revisadas: ${result.weak.length} cortas o predecibles, ${result.reused.length} grupos repetidos, ${result.stale.length} sin editar desde hace más de ${result.staleDays} días.`;
   $("#healthDialog").showModal();
   $("#healthTitle").focus();
+  setFlag(HEALTH_REVIEWED_KEY);
+  renderFirstSteps();
 }
 
 function createButton(label, iconPath, handler, className = "") {
@@ -490,6 +496,7 @@ function renderEntries() {
   pagination.hidden = filtered.length === 0;
   pagination.querySelector(".page-summary").textContent = filtered.length ? `${start + 1}–${Math.min(start + PAGE_SIZE, filtered.length)} de ${filtered.length} · Página ${state.page} de ${pageCount}` : "";
   pagination.querySelector(".page-actions").hidden = pageCount === 1;
+  renderFirstSteps();
   pagination.querySelector('[data-page-step="-1"]').disabled = state.page === 1;
   pagination.querySelector('[data-page-step="1"]').disabled = state.page === pageCount;
   elements.allCount.textContent = String(state.vault.entries.length);
@@ -685,8 +692,67 @@ async function copySecret(value) {
 }
 
 function clearLastExport() {
-  try { localStorage.removeItem(LAST_EXPORT_KEY); }
-  catch { /* Reminder metadata is best effort. */ }
+  for (const key of [LAST_EXPORT_KEY, LOCK_REVIEWED_KEY, HEALTH_REVIEWED_KEY, DISMISSED_KEY]) {
+    try { localStorage.removeItem(key); }
+    catch { /* Reminder metadata is best effort. */ }
+  }
+}
+
+function readFlag(key) {
+  try { return localStorage.getItem(key) === "1"; }
+  catch { return false; }
+}
+
+function setFlag(key) {
+  try { localStorage.setItem(key, "1"); }
+  catch { /* Onboarding progress is best effort. */ }
+}
+
+const STEP_ACTIONS = {
+  entry: () => openEntryDialog(),
+  lock: () => showSettings(),
+  health: () => showHealth(),
+};
+
+function renderFirstSteps() {
+  const section = $("#firstSteps");
+  const hidden = !state.key || state.demo || readFlag(DISMISSED_KEY);
+  const result = firstSteps({
+    entryCount: state.vault?.entries?.length || 0,
+    lockReviewed: readFlag(LOCK_REVIEWED_KEY),
+    healthReviewed: readFlag(HEALTH_REVIEWED_KEY),
+  });
+  section.hidden = hidden || result.complete;
+  if (section.hidden) return;
+  $("#firstStepsProgress").textContent = `${result.done} de ${result.total}`;
+  const list = $("#firstStepsList");
+  list.replaceChildren();
+  for (const [index, step] of result.steps.entries()) {
+    const item = document.createElement("li");
+    item.dataset.done = String(step.done);
+    const mark = document.createElement("span");
+    mark.className = "step-mark";
+    mark.textContent = step.done ? "✓" : String(index + 1);
+    mark.setAttribute("aria-hidden", "true");
+    const text = document.createElement("span");
+    const title = document.createElement("span");
+    title.className = "step-title";
+    title.textContent = step.title;
+    const hint = document.createElement("span");
+    hint.className = "step-hint";
+    hint.textContent = step.done ? "Hecho" : step.hint;
+    text.append(title, hint);
+    item.append(mark, text);
+    if (!step.done) {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "secondary-button";
+      button.textContent = step.action;
+      button.addEventListener("click", () => STEP_ACTIONS[step.id]());
+      item.append(button);
+    }
+    list.append(item);
+  }
 }
 
 function updateExportReminder() {
@@ -1024,6 +1090,7 @@ function bindEvents() {
   $$(".option-grid input").forEach((input) => input.addEventListener("change", refreshGeneratedPassword));
   $("#exportButton").addEventListener("click", exportVault);
   $("#backupReminderExport").addEventListener("click", exportVault);
+  $("#dismissFirstSteps").addEventListener("click", () => { setFlag(DISMISSED_KEY); renderFirstSteps(); });
   $("#importButton").addEventListener("click", () => { importIntent = "restore"; elements.importFile.accept = ".json,application/json"; elements.importFile.click(); });
   elements.importFile.addEventListener("change", () => importVault(elements.importFile.files[0]));
   for (const name of ["pointerdown", "keydown"]) document.addEventListener(name, resetInactivityTimer, { passive: true });
