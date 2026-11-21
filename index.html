@@ -55,7 +55,7 @@
             <div id="authUsernameGroup">
               <label for="authUsername">Nombre de usuario</label>
               <input id="authUsername" type="text" autocomplete="username" minlength="2" maxlength="40" placeholder="Ej. Josua" required>
-              <p class="microcopy">Recordaremos tu nombre para saludarte en este equipo. Será visible antes de desbloquear; tu clave maestra nunca se guarda.</p>
+              <p class="microcopy">Se muestra en este equipo antes de desbloquear. Tu clave maestra nunca se guarda.</p>
             </div>
             <label for="masterPassword">Clave maestra</label>
             <div class="input-wrap">
@@ -64,7 +64,11 @@
             </div>
             <div class="password-policy" id="masterPolicy" hidden>
               <p id="masterAssessment" aria-live="polite"></p>
-              <p>Una frase de cuatro o más palabras al azar suele ser más fácil de recordar que símbolos sueltos. La comprobación solo detecta patrones obvios.</p>
+              <p>Una frase de 4 o más palabras al azar es más fácil de recordar que símbolos sueltos. Solo detectamos patrones obvios.</p>
+              <button id="suggestPassphrase" class="secondary-button suggest-button" type="button"><span aria-hidden="true">✦</span> Sugerir una frase segura</button>
+              <p id="suggestionNote" class="suggestion-note" role="status" hidden></p>
+              <p id="suggestionPhrase" class="suggestion-phrase" hidden></p>
+              <label id="suggestionAckLabel" class="check-line" hidden><input id="suggestionAck" type="checkbox"> Ya la anoté en un lugar seguro</label>
             </div>
             <div id="confirmGroup">
               <label for="confirmPassword">Confirma tu clave</label>
