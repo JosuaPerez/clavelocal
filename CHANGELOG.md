@@ -4,6 +4,8 @@ Todos los cambios importantes se documentarán aquí siguiendo un esquema inspir
 
 ## [Sin publicar]
 
+- Móvil: las categorías y favoritas vuelven a estar disponibles (antes se ocultaban por debajo de 900 px) como una fila deslizable, y las acciones de seguridad, copias y cuenta pasan a un menú plegable. Se corrige un desborde que ensanchaba la página y cortaba las filas de la lista, el formulario de crear la bóveda pasa antes que los beneficios, y los primeros pasos colocan su botón bajo el texto.
+
 - Crear la bóveda: botón «Sugerir una frase segura» (6 palabras al azar, unos 66 bits) que rellena la clave maestra y su confirmación, la muestra completa para anotarla y exige confirmar que se anotó antes de continuar. Editar la clave a mano retira la sugerencia. La frase solo vive en el formulario y se borra al terminar. La tarjeta se compacta en pantallas bajas para que el botón de crear quepa sin desplazarse.
 
 - Interfaz: la barra lateral agrupa las acciones del pie en Seguridad, Copias y datos y Cuenta, con iconos, mayor tamaño y más contraste. Nueva lista de primeros pasos (guardar una contraseña, revisar el bloqueo, abrir la salud de la bóveda) que se puede ocultar y desaparece al completarse. Solo guarda tres marcas locales sin contenido de la bóveda y no aparece en la demo.
