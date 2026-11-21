@@ -123,10 +123,26 @@ textarea { resize: vertical; }
 .nav-item.active { color: var(--accent); background: var(--accent-soft); }
 .nav-item b { font-size: .68rem; min-width: 23px; padding: 2px 7px; border-radius: 99px; text-align: center; background: rgba(255,255,255,.06); }
 .nav-icon { text-align: center; }
-.sidebar-footer { border-top: 1px solid var(--line); padding: 16px 5px 0; display: grid; gap: 5px; }
-.sidebar-footer button { border: 0; padding: 7px 8px; text-align: left; color: #798497; background: transparent; font-size: .72rem; cursor: pointer; }
-.sidebar-footer button:hover { color: var(--accent); }
-.sidebar-footer p { color: #606a7b; font-size: .63rem; margin: 7px 8px 0; }
+.sidebar-footer { border-top: 1px solid var(--line); padding: 14px 0 0; display: grid; gap: 14px; }
+.sidebar-group { display: grid; gap: 2px; }
+.sidebar-group-label { margin: 0 8px 4px; color: #8a94a6; font-size: .66rem; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; }
+.sidebar-footer button { display: grid; grid-template-columns: 20px 1fr; align-items: center; gap: 10px; min-height: 38px; border: 0; border-radius: 9px; padding: 7px 10px; text-align: left; color: #a8b1c0; background: transparent; font-size: .78rem; cursor: pointer; }
+.sidebar-footer button svg { width: 18px; height: 18px; opacity: .85; }
+.sidebar-footer button:hover:not(:disabled) { color: var(--accent); background: rgba(255,255,255,.035); }
+.sidebar-footer button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.sidebar-footer .sidebar-status { color: #8a94a6; font-size: .68rem; margin: 0 10px; }
+.first-steps { margin: 0 0 28px; padding: 20px 22px; border: 1px solid rgba(124,245,188,.22); border-radius: 14px; background: var(--accent-soft); }
+.first-steps-head { display: flex; align-items: center; gap: 12px; }
+.first-steps-head h3 { margin: 0; font-size: 1rem; }
+.first-steps-progress { margin-right: auto; color: var(--accent); font-size: .76rem; }
+.first-steps-list { list-style: none; margin: 16px 0 0; padding: 0; display: grid; gap: 10px; }
+.first-steps-list li { display: grid; grid-template-columns: 28px 1fr auto; align-items: center; gap: 12px; }
+.first-steps-list .step-mark { width: 24px; height: 24px; display: grid; place-items: center; border-radius: 50%; border: 1px solid var(--line); color: var(--muted); font-size: .72rem; }
+.first-steps-list li[data-done="true"] .step-mark { background: var(--accent); border-color: var(--accent); color: #06110c; font-weight: 700; }
+.first-steps-list li[data-done="true"] .step-title { color: var(--muted); text-decoration: line-through; }
+.first-steps-list .step-title { display: block; font-size: .86rem; font-weight: 600; }
+.first-steps-list .step-hint { display: block; color: var(--muted); font-size: .76rem; margin-top: 2px; }
+.first-steps-list button { padding: 8px 12px; font-size: .76rem; }
 .vault-content { min-width: 0; border: 1px solid var(--line); border-left: 0; border-radius: 0 16px 16px 0; background: rgba(10,13,20,.55); padding: clamp(28px, 4vw, 52px); }
 .vault-header { display: flex; align-items: center; justify-content: space-between; gap: 24px; }
 .vault-header h2 { font: 400 clamp(2rem, 4vw, 3.2rem) Georgia, serif; letter-spacing: -.04em; margin: 7px 0 7px; }

@@ -4,6 +4,8 @@ Todos los cambios importantes se documentarán aquí siguiendo un esquema inspir
 
 ## [Sin publicar]
 
+- Interfaz: la barra lateral agrupa las acciones del pie en Seguridad, Copias y datos y Cuenta, con iconos, mayor tamaño y más contraste. Nueva lista de primeros pasos (guardar una contraseña, revisar el bloqueo, abrir la salud de la bóveda) que se puede ocultar y desaparece al completarse. Solo guarda tres marcas locales sin contenido de la bóveda y no aparece en la demo.
+
 - ADR 0002 (solo documento): opciones para Argon2id y para un archivo de clave opcional, con compatibilidad, migración, recuperación y condiciones en las que no se implementaría. No cambia el formato ni el código.
 
 - Importación desde otros gestores: CSV de Bitwarden, KeePassXC y 1Password y JSON sin cifrar de Bitwarden, con origen detectado por estructura, favoritos, categoría desde la carpeta o el grupo, varias URL, entradas no válidas por fila y aviso de las que tenían TOTP o campos personalizados que no se importan. Tarjetas, identidades y notas seguras se omiten y se cuentan; el JSON cifrado se rechaza. Cada botón de importación indica el flujo correcto si se elige el archivo equivocado. Formatos de KeePassXC y 1Password pendientes de verificar con exportaciones reales.
