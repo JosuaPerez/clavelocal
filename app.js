@@ -118,13 +118,49 @@ function renderMasterAssessment(panel, password, username) {
   return assessment;
 }
 
+function clearSuggestion() {
+  $("#suggestionNote").hidden = true;
+  $("#suggestionNote").textContent = "";
+  $("#suggestionPhrase").hidden = true;
+  $("#suggestionPhrase").textContent = "";
+  $("#suggestionAckLabel").hidden = true;
+  $("#suggestionAck").checked = false;
+}
+
+function resetAuthForm() {
+  elements.authForm.reset();
+  elements.masterPassword.type = "password";
+  elements.confirmPassword.type = "password";
+  clearSuggestion();
+}
+
+// The phrase is only written into the form fields; it is never stored or logged.
+function suggestPassphrase() {
+  const options = { words: 6, separator: "-" };
+  const phrase = generatePassphrase(options);
+  elements.masterPassword.value = phrase;
+  elements.confirmPassword.value = phrase;
+  elements.masterPassword.type = "text";
+  elements.authError.textContent = "";
+  $("#suggestionAck").checked = false;
+  $("#suggestionAckLabel").hidden = false;
+  const note = $("#suggestionNote");
+  note.textContent = `Frase de ${options.words} palabras elegidas al azar (unos ${Math.round(passphraseEntropyBits(options))} bits). Anótala en papel ahora: no podemos recuperarla.`;
+  note.hidden = false;
+  // Shown in full because the input truncates long phrases and the person has to copy it down.
+  $("#suggestionPhrase").textContent = phrase;
+  $("#suggestionPhrase").hidden = false;
+  updateAuthPolicy();
+}
+
 function updateAuthPolicy() {
   const panel = $("#masterPolicy");
   panel.hidden = !authReadable || $("#authUsernameGroup").hidden;
   const blocked = !panel.hidden && renderMasterAssessment(
     $("#masterAssessment"), elements.masterPassword.value, $("#authUsername").value,
   ).blocked;
-  elements.authSubmit.disabled = busy || !authReadable || blocked;
+  const unconfirmed = !$("#suggestionAckLabel").hidden && !$("#suggestionAck").checked;
+  elements.authSubmit.disabled = busy || !authReadable || blocked || unconfirmed;
 }
 
 async function handleAuth(event) {
@@ -139,6 +175,7 @@ async function handleAuth(event) {
     const assessment = assessMasterPassword(password, { username });
     if (assessment.blocked) { elements.authError.textContent = assessment.reasons.join(" "); return; }
     if (password !== elements.confirmPassword.value) { elements.authError.textContent = "Las claves no coinciden."; return; }
+    if (!$("#suggestionAckLabel").hidden && !$("#suggestionAck").checked) { elements.authError.textContent = "Confirma que anotaste la frase antes de continuar."; return; }
   }
   busy = true;
   const generation = ++session;
@@ -161,7 +198,7 @@ async function handleAuth(event) {
       $("#vaultNotice").hidden = !opened.warning;
     });
     if (generation !== session || !state.key) return;
-    elements.authForm.reset();
+    resetAuthForm();
     unlockUi();
   } catch (error) {
     state.key = null;
@@ -216,7 +253,7 @@ function lockVault(message = "Bóveda bloqueada") {
   $("#rekeyDeletePrevious").disabled = true;
   $("#rekeyRecoveryStatus").textContent = "";
   elements.entryForm.reset();
-  elements.authForm.reset();
+  resetAuthForm();
   $("#profileForm").reset();
   $("#profileDialog").close();
   $("#helpDialog").close();
@@ -1058,7 +1095,9 @@ function bindEvents() {
     else if (event.key === LAST_EXPORT_KEY) updateExportReminder();
   });
   elements.authForm.addEventListener("submit", handleAuth);
-  elements.masterPassword.addEventListener("input", updateAuthPolicy);
+  elements.masterPassword.addEventListener("input", () => { clearSuggestion(); updateAuthPolicy(); });
+  $("#suggestPassphrase").addEventListener("click", suggestPassphrase);
+  $("#suggestionAck").addEventListener("change", updateAuthPolicy);
   $("#authUsername").addEventListener("input", updateAuthPolicy);
   elements.lockButton.addEventListener("click", () => lockVault());
   $$("[data-reveal]").forEach((button) => button.addEventListener("click", () => {
