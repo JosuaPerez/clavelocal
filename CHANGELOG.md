@@ -4,21 +4,17 @@ Todos los cambios importantes se documentarán aquí siguiendo un esquema inspir
 
 ## [Sin publicar]
 
+## [0.6.0] - 2026-11-24
+
 - Móvil: las categorías y favoritas vuelven a estar disponibles (antes se ocultaban por debajo de 900 px) como una fila deslizable, y las acciones de seguridad, copias y cuenta pasan a un menú plegable. Se corrige un desborde que ensanchaba la página y cortaba las filas de la lista, el formulario de crear la bóveda pasa antes que los beneficios, y los primeros pasos colocan su botón bajo el texto.
-
 - Crear la bóveda: botón «Sugerir una frase segura» (6 palabras al azar, unos 66 bits) que rellena la clave maestra y su confirmación, la muestra completa para anotarla y exige confirmar que se anotó antes de continuar. Editar la clave a mano retira la sugerencia. La frase solo vive en el formulario y se borra al terminar. La tarjeta se compacta en pantallas bajas para que el botón de crear quepa sin desplazarse.
-
 - Interfaz: la barra lateral agrupa las acciones del pie en Seguridad, Copias y datos y Cuenta, con iconos, mayor tamaño y más contraste. Nueva lista de primeros pasos (guardar una contraseña, revisar el bloqueo, abrir la salud de la bóveda) que se puede ocultar y desaparece al completarse. Solo guarda tres marcas locales sin contenido de la bóveda y no aparece en la demo.
-
 - ADR 0002 (solo documento): opciones para Argon2id y para un archivo de clave opcional, con compatibilidad, migración, recuperación y condiciones en las que no se implementaría. No cambia el formato ni el código.
-
 - Importación desde otros gestores: CSV de Bitwarden, KeePassXC y 1Password y JSON sin cifrar de Bitwarden, con origen detectado por estructura, favoritos, categoría desde la carpeta o el grupo, varias URL, entradas no válidas por fila y aviso de las que tenían TOTP o campos personalizados que no se importan. Tarjetas, identidades y notas seguras se omiten y se cuentan; el JSON cifrado se rechaza. Cada botón de importación indica el flujo correcto si se elige el archivo equivocado. Formatos de KeePassXC y 1Password pendientes de verificar con exportaciones reales.
-
 - Generador de frases de 4 a 10 palabras con lista propia de 2.048 palabras en español, muestreo uniforme sin sesgo, separador y opciones, y estimación exacta en bits para frases generadas de forma uniforme. La lista se verifica por hash en las pruebas.
-
 - Salud de la bóveda: vista local de solo lectura con claves cortas o predecibles, contraseñas repetidas y entradas sin editar desde hace más de 365 días. Sin red ni almacenamiento, sin mostrar contraseñas, y se limpia al bloquear.
-
 - La comprobación de claves maestras ya no deja pasar una base común con una cola numérica larga (por ejemplo `password12345678`). Se recortan hasta 24 dígitos, signos o símbolos en cada borde antes de compararla con la lista, con pruebas de corpus y de tiempo acotado.
+- Dependencias: Tauri 2.12.7, tauri-build 2.7.6 y `@tauri-apps/cli` 2.12.6 (correcciones de empaquetado NSIS/MSI y dependencias del CLI), y `actions/dependency-review-action` 5.0.1.
 
 ## [0.5.0] - 2026-11-11
 
