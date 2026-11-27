@@ -84,7 +84,7 @@ test("un guardado que termina después de bloquear no repuebla la sesión ni el 
   await page.locator("#lockButton").evaluate((button) => button.click());
   await page.evaluate(() => window.finishProfileSave());
   await expect(page.locator("#profileError")).toContainText("se bloqueó");
-  await expect(page.locator("#vaultGreeting")).toHaveText("TU ESPACIO PRIVADO");
+  await expect(page.locator("#vaultGreeting")).toHaveText("Tu espacio privado");
   await expect(page.locator("#vaultView")).not.toBeVisible();
 });
 test("ocultar la app durante el inicio cancela el desbloqueo pendiente", async ({ page }) => {

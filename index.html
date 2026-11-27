@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'self'">
-    <meta name="color-scheme" content="dark">
+    <meta name="color-scheme" content="dark light">
     <meta name="theme-color" content="#080b12">
     <title>ClaveLocal — Bóveda de contraseñas</title>
     <link rel="stylesheet" href="./styles.css">
@@ -34,20 +34,19 @@
 
       <section id="welcomeView" class="welcome-view">
         <div class="welcome-copy">
-          <p class="eyebrow"><span></span> PRIVACIDAD SIN COMPLICACIONES</p>
           <h1>Tus contraseñas.<br><em>Bajo tu control.</em></h1>
           <p class="lead">Crea contraseñas fuertes y guárdalas en una bóveda cifrada que nunca sale de tu computadora.</p>
           <div class="benefits">
-            <div><span>01</span><p><strong>Cifrado AES-256</strong>Tu información queda protegida con tu clave maestra.</p></div>
-            <div><span>02</span><p><strong>Sin nube ni cuentas</strong>Nada que registrar, sincronizar o compartir.</p></div>
-            <div><span>03</span><p><strong>Listo para usar</strong>Genera, copia y organiza en segundos.</p></div>
+            <div><p><strong>Cifrado AES-256</strong>Tu información queda protegida con tu clave maestra.</p></div>
+            <div><p><strong>Sin nube ni cuentas</strong>Nada que registrar, sincronizar o compartir.</p></div>
+            <div><p><strong>Listo para usar</strong>Genera, copia y organiza en segundos.</p></div>
           </div>
         </div>
 
         <div class="auth-card glass-panel">
           <div class="profile-avatar" id="profileAvatar" aria-hidden="true" hidden></div>
           <div class="auth-icon" id="authLockIcon"><svg viewBox="0 0 24 24"><path d="M12 3 4.5 6v5.4c0 4.7 3.2 8.2 7.5 9.6 4.3-1.4 7.5-4.9 7.5-9.6V6L12 3Zm0 5v8m-3-4h6"/></svg></div>
-          <p class="card-kicker" id="authKicker">PRIMER ACCESO</p>
+          <p class="card-kicker" id="authKicker">Primer acceso</p>
           <h2 id="authTitle">Crea tu bóveda</h2>
           <p class="muted" id="authDescription">Elige una clave maestra. Será la única forma de abrir tus contraseñas.</p>
 
@@ -88,12 +87,12 @@
       <section id="vaultView" class="vault-view hidden">
         <aside class="sidebar glass-panel">
           <div>
-            <p class="section-label">BÓVEDA</p>
+            <p class="section-label">Bóveda</p>
             <nav>
               <button class="nav-item active" type="button" data-view="all"><span class="nav-icon">▦</span> Todas <b id="allCount">0</b></button>
               <button class="nav-item" type="button" data-view="favorites"><span class="nav-icon">♡</span> Favoritas <b id="favoriteCount">0</b></button>
             </nav>
-            <p class="section-label category-label">CATEGORÍAS</p>
+            <p class="section-label category-label">Categorías</p>
             <nav id="categoryNav"></nav>
           </div>
           <button id="menuToggle" class="menu-toggle" type="button" aria-expanded="false" aria-controls="sidebarFooter">Seguridad, copias y cuenta <span aria-hidden="true">▾</span></button>
@@ -144,7 +143,7 @@
           </section>
           <div class="vault-header">
             <div>
-              <p class="eyebrow" id="vaultGreeting">TU ESPACIO PRIVADO</p>
+              <p class="eyebrow" id="vaultGreeting">Tu espacio privado</p>
               <h2>Mis contraseñas</h2>
               <p class="muted">Todo organizado, todo bajo llave.</p>
             </div>
@@ -238,7 +237,7 @@
 
     <dialog id="profileDialog" class="app-dialog">
       <form id="profileForm" novalidate>
-        <p class="card-kicker">TU PERFIL LOCAL</p>
+        
         <h2>Un espacio a tu nombre</h2>
         <p id="profileDescription"></p>
         <label for="profileUsername">Nombre de usuario</label>
@@ -303,7 +302,7 @@
 
     <dialog id="entryDialog" class="app-dialog">
       <form id="entryForm" method="dialog" novalidate>
-        <div class="dialog-header"><div><p class="card-kicker">BÓVEDA</p><h2 id="entryDialogTitle">Nueva contraseña</h2></div><button class="dialog-close" value="cancel" aria-label="Cerrar" formnovalidate>×</button></div>
+        <div class="dialog-header"><div><p class="card-kicker">Bóveda</p><h2 id="entryDialogTitle">Nueva contraseña</h2></div><button class="dialog-close" value="cancel" aria-label="Cerrar" formnovalidate>×</button></div>
         <input id="entryId" type="hidden">
         <div class="form-grid">
           <div class="span-two"><label for="entrySite">Sitio o aplicación</label><input id="entrySite" maxlength="80" placeholder="Ej. Netflix" required></div>
@@ -320,7 +319,7 @@
 
     <dialog id="generatorDialog" class="app-dialog generator-dialog">
       <form method="dialog">
-        <div class="dialog-header"><div><p class="card-kicker">GENERADOR</p><h2>Una clave difícil de adivinar</h2></div><button class="dialog-close" value="cancel" aria-label="Cerrar">×</button></div>
+        <div class="dialog-header"><div><h2>Una clave difícil de adivinar</h2></div><button class="dialog-close" value="cancel" aria-label="Cerrar">×</button></div>
         <div class="generated-output"><output id="generatedPassword"></output><button id="copyGeneratedButton" type="button" aria-label="Copiar contraseña">Copiar</button></div>
         <div class="strength-line generator-strength"><span id="generatorStrengthFill"></span><small id="generatorStrengthLabel"></small></div>
         <fieldset class="generator-mode">

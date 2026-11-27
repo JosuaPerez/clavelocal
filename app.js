@@ -13,7 +13,7 @@ import { generatePassphrase, passphraseEntropyBits } from "./passphrase.mjs";
 import { passphraseWords } from "./wordlist-es.mjs";
 import { APP_VERSION } from "./version.mjs";
 import { firstSteps, LOCK_REVIEWED_KEY, HEALTH_REVIEWED_KEY, DISMISSED_KEY } from "./firststeps.mjs";
-const PAGE_SIZE = 5;
+const PAGE_SIZE = 10;
 const LAST_EXPORT_KEY = "clavelocal.last-export.v1";
 const EXPORT_REMINDER_MS = 30 * 24 * 60 * 60 * 1000;
 const store = new VaultStore(localStorage);
@@ -102,7 +102,7 @@ function configureAuth() {
   elements.confirmGroup.classList.toggle("hidden", exists);
   elements.confirmPassword.required = !exists;
   elements.masterPassword.autocomplete = exists ? "current-password" : "new-password";
-  elements.authKicker.textContent = exists ? "BIENVENIDO DE NUEVO" : "PRIMER ACCESO";
+  elements.authKicker.textContent = exists ? "Bienvenido de nuevo" : "Primer acceso";
   elements.authTitle.textContent = exists ? (profile ? `Hola, ${profile.username}` : "Abre tu bóveda") : "Crea tu perfil";
   elements.authDescription.textContent = exists
     ? "Introduce tu clave maestra para descifrar tus contraseñas."
@@ -260,7 +260,7 @@ function lockVault(message = "Bóveda bloqueada") {
   $("#profileForm").reset();
   $("#profileDialog").close();
   $("#helpDialog").close();
-  $("#vaultGreeting").textContent = "TU ESPACIO PRIVADO";
+  $("#vaultGreeting").textContent = "Tu espacio privado";
   $("#importForm").reset();
   pendingImport = null;
   clearCsv();
@@ -992,7 +992,7 @@ async function confirmImport(event) {
 
 function renderProfile() {
   const profile = state.vault.profile;
-  $("#vaultGreeting").textContent = state.demo ? "DEMO · DATOS FICTICIOS" : profile ? `Hola, ${profile.username}` : "TU ESPACIO PRIVADO";
+  $("#vaultGreeting").textContent = state.demo ? "Demo · datos ficticios" : profile ? `Hola, ${profile.username}` : "Tu espacio privado";
   $("#profileButton").disabled = state.demo;
   if (!state.demo && !cacheProfile(localStorage, profile)) showToast("La bóveda está abierta, pero no pudimos recordar tu nombre en este equipo.");
 }
