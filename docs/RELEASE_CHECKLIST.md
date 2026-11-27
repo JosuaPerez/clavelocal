@@ -2,6 +2,7 @@
 
 1. Elegir un commit revisado de `main`; nunca un artefacto de un PR o fork.
 2. Confirmar pruebas, CodeQL y compilación Windows satisfactorias para ese mismo commit. Revisar alertas de dependencias, no solo el color de los checks.
+2b. La versión debe coincidir en `package.json`, `package-lock.json`, `src-tauri/tauri.conf.json`, `src-tauri/Cargo.toml`, `src-tauri/Cargo.lock` y `version.mjs` (la que se muestra en la app); `npm test` lo comprueba.
 3. Preparar el artefacto del run correspondiente siguiendo [UPDATES.md](UPDATES.md). Comprobar hash, firma, versión y pruebas negativas. Si se dispone de Authenticode, aplicarlo antes de la firma del actualizador y volver a generar los hashes.
 4. Crear el tag de versión apuntando al commit exacto y preparar las notas con cambios, migración y limitaciones. Esta versión se publica como prerelease experimental.
 5. Adjuntar el instalador, firma, manifest y hashes. Antes de publicar comprobar que no hay secretos, datos de usuario ni artefactos de desarrollo.

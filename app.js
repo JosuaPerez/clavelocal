@@ -11,6 +11,7 @@ import { assessMasterPassword, describeEntryPassword } from "./strength.mjs";
 import { analyzeVault } from "./health.mjs";
 import { generatePassphrase, passphraseEntropyBits } from "./passphrase.mjs";
 import { passphraseWords } from "./wordlist-es.mjs";
+import { APP_VERSION } from "./version.mjs";
 import { firstSteps, LOCK_REVIEWED_KEY, HEALTH_REVIEWED_KEY, DISMISSED_KEY } from "./firststeps.mjs";
 const PAGE_SIZE = 5;
 const LAST_EXPORT_KEY = "clavelocal.last-export.v1";
@@ -1131,6 +1132,8 @@ function bindEvents() {
   $$(".option-grid input").forEach((input) => input.addEventListener("change", refreshGeneratedPassword));
   $("#exportButton").addEventListener("click", exportVault);
   $("#backupReminderExport").addEventListener("click", exportVault);
+  $("#appVersionLine").textContent = `ClaveLocal ${APP_VERSION} · experimental, sin auditoría independiente.`;
+  $("#updateCurrentVersion").textContent = `Versión instalada: ${APP_VERSION}`;
   $("#menuToggle").addEventListener("click", () => {
     const open = $("#sidebarFooter").classList.toggle("open");
     $("#menuToggle").setAttribute("aria-expanded", String(open));

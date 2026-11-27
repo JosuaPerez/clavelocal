@@ -4,6 +4,8 @@ Todos los cambios importantes se documentarán aquí siguiendo un esquema inspir
 
 ## [Sin publicar]
 
+- La app muestra su versión en Ayuda y en la ventana de actualizaciones (`version.mjs`), con una prueba que falla si no coincide con `package.json`, `tauri.conf.json` y `Cargo.toml`.
+
 ## [0.6.0] - 2026-11-24
 
 - Móvil: las categorías y favoritas vuelven a estar disponibles (antes se ocultaban por debajo de 900 px) como una fila deslizable, y las acciones de seguridad, copias y cuenta pasan a un menú plegable. Se corrige un desborde que ensanchaba la página y cortaba las filas de la lista, el formulario de crear la bóveda pasa antes que los beneficios, y los primeros pasos colocan su botón bajo el texto.
