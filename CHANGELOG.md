@@ -4,7 +4,12 @@ Todos los cambios importantes se documentarán aquí siguiendo un esquema inspir
 
 ## [Sin publicar]
 
-- La app muestra su versión en Ayuda y en la ventana de actualizaciones (`version.mjs`), con una prueba que falla si no coincide con `package.json`, `tauri.conf.json` y `Cargo.toml`.
+## [0.6.1] - 2026-11-27
+
+- Interfaz renovada («caja fuerte»): paleta de grafito y latón con tema claro y oscuro automático, mayor contraste y tamaño mínimo de texto, etiquetas en minúscula sin adornos, titular de acceso sin cursiva de color y beneficios sin numeración. Se oculta el segundo icono de ojo que WebView2 añadía a los campos de clave.
+- Estructura: la app usa todo el ancho de la ventana, el menú lateral queda fijo con scroll propio y la lista muestra diez entradas por página en lugar de cinco, con filas más compactas.
+- Accesibilidad: foco visible global y respeto de `prefers-reduced-motion`.
+- La app muestra su versión su versión en Ayuda y en la ventana de actualizaciones (`version.mjs`), con una prueba que falla si no coincide con `package.json`, `tauri.conf.json` y `Cargo.toml`.
 
 ## [0.6.0] - 2026-11-24
 
