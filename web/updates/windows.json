@@ -1,11 +1,11 @@
 {
-  "version": "0.5.0",
-  "notes": "0.5.0: cinco contraseñas por página con navegación al final, ventana de actualizaciones más compacta, cambio de clave maestra y recordatorio de copia cifrada.",
-  "pub_date": "2026-11-11T23:03:13.839Z",
+  "version": "0.6.0",
+  "notes": "0.6.0: salud de la bóveda, generador de frases, importadores de otros gestores, barra lateral agrupada y mejoras para móvil.",
+  "pub_date": "2026-11-27T00:44:26.340Z",
   "platforms": {
     "windows-x86_64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSZDJFbFpQYU9aSHpjdVhKc1JmemNGK0pxc1ZndElqVFFCN2RVbjliNzNuR2xqNld6TVlueU5GbHpES24rSEN3ZlpwY0I0MXRiNDZ6UlFPb3pTU3orQmhkZFJxR2V5dHdjPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzk0NDM4MTkyCWZpbGU6Q2xhdmVMb2NhbF8wLjUuMF94NjQtc2V0dXAuZXhlCXZlcnNpb246MC41LjAKeWQrUDh5T1drRytVZTIxTEc5eldCNEw5VHpYU3pTdzNZWWpmTm1ndmJkOUtIbjRSLzh1VWVkTFoyaEVBbzNmaTRlc25lY3E2RnhPeW1SOXoxZkZDQ0E9PQo=",
-      "url": "https://github.com/JosuaPerez/clavelocal/releases/download/v0.5.0/ClaveLocal_0.5.0_x64-setup.exe"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSZDJFbFpQYU9aSDgvU2lPaWNKSXlDRVFmLzc4RTdPSklzeGErcFR0SXMrYUZPekI2YnI3aHMvdkJXSjBieEw5YzFaK0U2Z1hCeGhNVWdZWVQzb0Y2RzMwWUVUWms3b2dFPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzk1NzQwMjY1CWZpbGU6Q2xhdmVMb2NhbF8wLjYuMF94NjQtc2V0dXAuZXhlCXZlcnNpb246MC42LjAKdHJLaXVDcmhiNVVvNlFjTUxHRlVpYTV0cnJJbEc0SEQ3UHN6ZlUzMnFjYnNrTSsvNjJtN1ZJa09na2ZwR0tsT3Nod2pEdlF1SFp4Y2hyOGZKOXJ2REE9PQo=",
+      "url": "https://github.com/JosuaPerez/clavelocal/releases/download/v0.6.0/ClaveLocal_0.6.0_x64-setup.exe"
     }
   }
 }
