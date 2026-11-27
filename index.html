@@ -181,6 +181,7 @@
         <div class="recovery-actions"><button class="secondary-button" id="restoreButton" type="button">Restaurar copia cifrada</button><button class="secondary-button" id="previousBackupButton" type="button">Descargar copia anterior</button></div>
         <p>Las copias requieren su clave maestra. No podemos recuperarla ni desbloquear una bóveda sin ella.</p>
         <p>La copia anterior conserva la versión previa al último cambio guardado o migración. Abrir y bloquear no la reemplazan. No sustituye una copia externa.</p>
+        <p class="microcopy" id="appVersionLine"></p>
         <a href="https://github.com/JosuaPerez/clavelocal/issues/new?template=feedback.yml" target="_blank" rel="noopener noreferrer">Enviar comentarios ↗</a>
       </div>
     </dialog>
@@ -252,6 +253,7 @@
     <dialog id="updateDialog" class="app-dialog update-dialog" aria-labelledby="updateTitle">
       <form method="dialog">
         <h2 id="updateTitle">Actualizaciones</h2>
+        <p class="microcopy" id="updateCurrentVersion"></p>
         <p id="updateStatus" role="status" tabindex="-1"></p>
         <div id="updateInstallOptions" hidden>
           <details id="updateChanges" hidden>
