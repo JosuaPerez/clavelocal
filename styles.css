@@ -298,13 +298,38 @@ input[type="range"] { accent-color: var(--accent); padding: 0; background: trans
   .dialog-actions { flex-wrap: wrap; }
 }
 
-.health-content h3 { font-size: .9rem; margin: 18px 0 6px; }
-.health-list { list-style: none; margin: 0; padding: 0; }
-.health-list li { margin: 4px 0; }
-.health-list button, .health-group button { width: 100%; text-align: left; }
-.health-group { border: 1px solid var(--line); border-radius: 12px; padding: 8px 12px; margin: 8px 0; }
-.health-group p { margin: 0 0 6px; color: var(--muted); font-size: .8rem; }
-.health-empty { color: var(--muted); font-size: .8rem; margin: 4px 0; }
+.health-dialog { width: min(700px, calc(100% - 30px)); height: min(720px, calc(100vh - 30px)); overflow: hidden; }
+.health-dialog[open] { display: flex; }
+.health-content { display: flex; flex-direction: column; width: 100%; min-height: 0; }
+.health-head { padding: 24px 28px 0; border-bottom: 1px solid var(--line); }
+.health-head .dialog-header { margin-bottom: 14px; }
+.health-verdict { margin: 0 0 12px; font: 400 1.35rem/1.25 var(--serif); letter-spacing: -.01em; }
+.health-meter { height: 6px; border-radius: 99px; background: rgba(var(--ink-rgb), .1); overflow: hidden; }
+.health-meter span { display: block; height: 100%; width: 0; border-radius: inherit; background: var(--accent); transition: width .4s ease; }
+.health-summary { margin: 10px 0 16px; color: var(--muted); font-size: .85rem; line-height: 1.4; }
+.health-tabs { display: flex; gap: 4px; margin-bottom: -1px; overflow-x: auto; }
+.health-tab { flex: none; display: inline-flex; align-items: center; gap: 8px; padding: 10px 14px; border: 0; border-bottom: 2px solid transparent; background: transparent; color: var(--muted); font: inherit; font-size: .88rem; cursor: pointer; }
+.health-tab:hover { color: var(--text); }
+.health-tab[aria-selected="true"] { color: var(--text); border-bottom-color: var(--accent); }
+.health-tab b { min-width: 22px; padding: 1px 7px; border-radius: 99px; background: rgba(var(--ink-rgb), .08); font-size: .8rem; text-align: center; }
+.health-tab[aria-selected="true"] b { background: var(--accent-soft); color: var(--accent); }
+.health-body { flex: 1; min-height: 0; overflow-y: auto; padding: 18px 28px; }
+.health-foot { display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 14px 28px; border-top: 1px solid var(--line); }
+.health-foot .microcopy { margin: 0; font-size: .8rem; max-width: 46ch; }
+.health-foot button { flex: none; }
+.health-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.health-row { width: 100%; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 14px; align-items: center; padding: 10px 14px; border: 1px solid var(--line); border-radius: 10px; background: transparent; color: var(--text); font: inherit; font-size: .9rem; text-align: left; cursor: pointer; }
+.health-row:hover { border-color: rgba(var(--accent-rgb), .5); background: var(--accent-soft); }
+.health-row strong, .health-row span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
+.health-row span { color: var(--muted); font-weight: 400; }
+.health-group { border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; margin: 0 0 10px; }
+.health-group p { margin: 0 0 10px; color: var(--text); font-size: .9rem; font-weight: 600; }
+.health-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.health-chip { max-width: 100%; padding: 6px 11px; border: 1px solid var(--line); border-radius: 99px; background: rgba(var(--ink-rgb), .04); color: var(--text-2); font: inherit; font-size: .84rem; cursor: pointer; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.health-chip:hover { border-color: rgba(var(--accent-rgb), .6); color: var(--text); }
+.health-group .text-button { margin-top: 8px; }
+.health-empty { color: var(--muted); font-size: .9rem; margin: 8px 0; }
+@media (max-width: 560px) { .health-foot { flex-direction: column; align-items: stretch; } .health-row { grid-template-columns: 1fr; gap: 2px; } }
 
 .sr-only { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
 .generator-mode { border: 0; margin: 0 0 12px; padding: 0; }
@@ -314,3 +339,31 @@ input[type="range"] { accent-color: var(--accent); padding: 0; background: trans
 input:focus-visible, select:focus-visible, textarea:focus-visible { outline: none; }
 @media (max-width: 900px) { .sidebar { position: static; max-height: none; overflow-y: visible; } }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation: none !important; scroll-behavior: auto !important; } }
+
+/* Escritorio: la app ocupa la ventana y solo la lista tiene scroll visible. El menú es compacto y,
+   si la ventana es muy baja, se desplaza sin barra para no duplicar los desplazamientos. */
+@media (min-width: 901px) {
+  body:has(#vaultView:not(.hidden)) { height: 100vh; overflow: hidden; }
+  body:has(#vaultView:not(.hidden)) .app-shell { height: 100vh; }
+  .vault-view { height: calc(100vh - 64px); min-height: 0; padding: 12px 0 16px; }
+  .sidebar { position: static; height: 100%; max-height: none; overflow-y: auto; scrollbar-width: none; padding: 16px 12px 12px; }
+  .sidebar::-webkit-scrollbar { display: none; }
+  .category-label { margin-top: 14px; }
+  .sidebar nav { gap: 2px; }
+  .nav-item { padding: 7px 12px; }
+  .sidebar-footer { gap: 8px; padding-top: 10px; }
+  .sidebar-footer button { min-height: 34px; padding: 5px 10px; }
+  .vault-content { height: 100%; overflow-y: auto; overscroll-behavior: contain; scrollbar-gutter: stable; }
+}
+
+/* Avisos más bajos para que la lista quede a la vista en ventanas de 768 px de alto. */
+@media (min-width: 901px) {
+  .sidebar-status { display: none; }
+  .backup-reminder { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 8px 8px 8px 16px; margin-bottom: 12px; }
+  .backup-reminder p { margin: 0; }
+  .first-steps { margin-bottom: 18px; padding: 14px 18px; }
+  .first-steps-list { margin-top: 12px; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+  .first-steps-list li { grid-template-columns: 24px minmax(0, 1fr); align-items: start; }
+  .first-steps-list li button { grid-column: 2; justify-self: start; margin-top: 6px; }
+}
+.health-foot .microcopy { text-align: left; justify-content: flex-start; }

@@ -44,6 +44,9 @@ test("salud de la bóveda lista débiles y repetidas sin mostrar contraseñas", 
   const text = await page.locator("#healthDialog").evaluate((dialog) => dialog.innerHTML + dialog.textContent);
   for (const password of [reused, weak, unique, master]) expect(text).not.toContain(password);
 
+  await expect(page.locator("#healthTabReused")).toHaveAttribute("aria-selected", "true");
+  await page.locator("#healthTabWeak").click();
+  await expect(page.locator("#healthWeak button")).toBeVisible();
   await page.locator("#healthWeak button").click();
   await expect(page.locator("#healthDialog")).toBeHidden();
   await expect(page.locator("#entryDialog")).toBeVisible();

@@ -416,14 +416,28 @@ async function deleteRekeyBackup() {
 
 function clearHealth() {
   for (const id of ["healthWeak", "healthReused", "healthStale"]) $(`#${id}`).replaceChildren();
-  $("#healthSummary").textContent = "";
+  for (const id of ["healthSummary", "healthVerdict"]) $(`#${id}`).textContent = "";
+  $("#healthMeter").style.width = "0";
 }
 
-function healthRow(entry) {
+function healthRow(entry, compact = false) {
   const button = document.createElement("button");
   button.type = "button";
-  button.className = "secondary-button";
-  button.textContent = entry.username ? `${entry.site} · ${entry.username}` : entry.site;
+  button.className = compact ? "health-chip" : "health-row";
+  const full = entry.username ? `${entry.site} · ${entry.username}` : entry.site;
+  if (compact) {
+    button.textContent = entry.site;
+    button.title = full;
+  } else {
+    const site = document.createElement("strong");
+    site.textContent = entry.site;
+    button.append(site);
+    if (entry.username) {
+      const user = document.createElement("span");
+      user.textContent = entry.username;
+      button.append(user);
+    }
+  }
   button.addEventListener("click", () => { $("#healthDialog").close(); openEntryDialog(entry); });
   return button;
 }
@@ -440,12 +454,27 @@ function healthList(list, ids, byId, emptyText) {
   }
 }
 
+const HEALTH_TABS = ["Reused", "Weak", "Stale"];
+const HEALTH_CHIP_LIMIT = 6;
+
+function selectHealthTab(name, focus = false) {
+  for (const tab of HEALTH_TABS) {
+    const on = tab === name;
+    const button = $(`#healthTab${tab}`);
+    button.setAttribute("aria-selected", String(on));
+    button.tabIndex = on ? 0 : -1;
+    $(`#healthPanel${tab}`).hidden = !on;
+    if (on && focus) button.focus();
+  }
+  $(".health-body").scrollTop = 0;
+}
+
 function showHealth() {
   if (!state.key || state.demo || busy) return;
   const result = analyzeVault(state.vault);
   const byId = new Map(state.vault.entries.map((entry) => [entry.id, entry]));
   const weak = $("#healthWeak"), stale = $("#healthStale"), reused = $("#healthReused");
-  healthList(weak, result.weak, byId, "No se detectaron claves cortas o predecibles.");
+  healthList(weak, result.weak, byId, "No hay claves cortas o predecibles.");
   healthList(stale, result.stale, byId, `Ninguna entrada lleva más de ${result.staleDays} días sin editarse.`);
   reused.replaceChildren();
   if (!result.reused.length) { const empty = document.createElement("p"); empty.className = "health-empty"; empty.textContent = "No hay claves repetidas."; reused.append(empty); }
@@ -454,11 +483,36 @@ function showHealth() {
     group.className = "health-group";
     const label = document.createElement("p");
     label.textContent = `La misma contraseña en ${ids.length} entradas`;
-    group.append(label);
-    for (const id of ids) if (byId.has(id)) group.append(healthRow(byId.get(id)));
+    const chips = document.createElement("div");
+    chips.className = "health-chips";
+    const entries = ids.filter((id) => byId.has(id)).map((id) => byId.get(id));
+    entries.forEach((entry, index) => {
+      const chip = healthRow(entry, true);
+      if (index >= HEALTH_CHIP_LIMIT) chip.hidden = true;
+      chips.append(chip);
+    });
+    group.append(label, chips);
+    if (entries.length > HEALTH_CHIP_LIMIT) {
+      const more = document.createElement("button");
+      more.type = "button";
+      more.className = "text-button";
+      more.textContent = `Ver ${entries.length - HEALTH_CHIP_LIMIT} más`;
+      more.addEventListener("click", () => { for (const chip of chips.querySelectorAll("[hidden]")) chip.hidden = false; more.remove(); });
+      group.append(more);
+    }
     reused.append(group);
   }
+  const flagged = new Set([...result.weak, ...result.stale, ...result.reused.flat()]);
+  const clean = Math.max(0, result.total - flagged.size);
+  $("#healthCountReused").textContent = String(result.reused.length);
+  $("#healthCountWeak").textContent = String(result.weak.length);
+  $("#healthCountStale").textContent = String(result.stale.length);
+  $("#healthVerdict").textContent = !result.total ? "Aún no hay entradas que revisar."
+    : flagged.size ? `${flagged.size} de ${result.total} entradas necesitan atención.` : "Todo en orden: no hay nada que corregir.";
+  $("#healthMeter").style.width = `${result.total ? Math.round((clean / result.total) * 100) : 100}%`;
   $("#healthSummary").textContent = `${result.total} entradas revisadas: ${result.weak.length} cortas o predecibles, ${result.reused.length} grupos repetidos, ${result.stale.length} sin editar desde hace más de ${result.staleDays} días.`;
+  const counts = { Reused: result.reused.length, Weak: result.weak.length, Stale: result.stale.length };
+  selectHealthTab(HEALTH_TABS.find((tab) => counts[tab] > 0) || "Reused");
   $("#healthDialog").showModal();
   $("#healthTitle").focus();
   setFlag(HEALTH_REVIEWED_KEY);
@@ -1047,6 +1101,15 @@ function bindEvents() {
   $("#healthButton").addEventListener("click", showHealth);
   $("#closeHealth").addEventListener("click", () => $("#healthDialog").close());
   $("#doneHealth").addEventListener("click", () => $("#healthDialog").close());
+  for (const tab of HEALTH_TABS) {
+    $(`#healthTab${tab}`).addEventListener("click", () => selectHealthTab(tab));
+    $(`#healthTab${tab}`).addEventListener("keydown", (event) => {
+      const step = event.key === "ArrowRight" ? 1 : event.key === "ArrowLeft" ? -1 : 0;
+      if (!step) return;
+      event.preventDefault();
+      selectHealthTab(HEALTH_TABS[(HEALTH_TABS.indexOf(tab) + step + HEALTH_TABS.length) % HEALTH_TABS.length], true);
+    });
+  }
   $("#healthDialog").addEventListener("close", () => { if (state.key && !elements.entryDialog.open) $("#healthButton").focus(); clearHealth(); });
   $("#changeKeyButton").addEventListener("click", showChangeKey);
   $("#changeKeyForm").addEventListener("submit", saveChangeKey);
