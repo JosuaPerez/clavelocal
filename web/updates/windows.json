@@ -1,11 +1,11 @@
 {
-  "version": "0.6.0",
-  "notes": "0.6.0: salud de la bóveda, generador de frases, importadores de otros gestores, barra lateral agrupada y mejoras para móvil.",
-  "pub_date": "2026-11-27T00:44:26.340Z",
+  "version": "0.6.1",
+  "notes": "0.6.1: interfaz renovada con tema claro y oscuro, más contraste, app a ventana completa y diez entradas por página.",
+  "pub_date": "2026-11-28T03:32:55.000Z",
   "platforms": {
     "windows-x86_64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSZDJFbFpQYU9aSDgvU2lPaWNKSXlDRVFmLzc4RTdPSklzeGErcFR0SXMrYUZPekI2YnI3aHMvdkJXSjBieEw5YzFaK0U2Z1hCeGhNVWdZWVQzb0Y2RzMwWUVUWms3b2dFPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzk1NzQwMjY1CWZpbGU6Q2xhdmVMb2NhbF8wLjYuMF94NjQtc2V0dXAuZXhlCXZlcnNpb246MC42LjAKdHJLaXVDcmhiNVVvNlFjTUxHRlVpYTV0cnJJbEc0SEQ3UHN6ZlUzMnFjYnNrTSsvNjJtN1ZJa09na2ZwR0tsT3Nod2pEdlF1SFp4Y2hyOGZKOXJ2REE9PQo=",
-      "url": "https://github.com/JosuaPerez/clavelocal/releases/download/v0.6.0/ClaveLocal_0.6.0_x64-setup.exe"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSZDJFbFpQYU9aSCtwdm5TaGRUeUlHUUJEdmdFc1FBQjBjNlp5aFhIU0s3Ny9hY3E3cHd0YUxRK1FmYTl2UndjN1Z2VFh1SFdnSTMyNXBaZ2M1ZnVyaWRmZ1B0S294ZGc0PQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzk1ODM2Nzc1CWZpbGU6Q2xhdmVMb2NhbF8wLjYuMV94NjQtc2V0dXAuZXhlCXZlcnNpb246MC42LjEKcGNZY0lRWmJ0QS82ZWRmMUVRU0Jld1ZVbFQ3WVJCb05kbzEzQmlBKzlzQnJyU0FKVEJadEhsaDdSYkYrZk1jQjhnSnlQcjhXVDZ4NWdaVUZlQ3VERGc9PQo=",
+      "url": "https://github.com/JosuaPerez/clavelocal/releases/download/v0.6.1/ClaveLocal_0.6.1_x64-setup.exe"
     }
   }
 }
